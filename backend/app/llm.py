@@ -47,7 +47,7 @@ def summarize_usage(calls: list) -> dict:
 
 def no_em_dash(text: str) -> str:
     """House style: no em dashes in anything we show (Gemini likes them)."""
-    return text.replace(" — ", ", ").replace("—", "-")
+    return text.replace(" \u2014 ", ", ").replace("\u2014", "-")
 
 
 def doc_part(path: str, mime_type: str) -> types.Part:
