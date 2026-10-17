@@ -1,0 +1,32 @@
+[
+  {
+    "id": "live-ring",
+    "title": "Fresh claim from Speedfix Motor Works",
+    "description": "Looks routine on its own. Watch the Linker agent connect it to other claims.",
+    "files": [
+      "claim_form.pdf",
+      "repair_invoice.pdf",
+      "rc_and_licence.pdf"
+    ]
+  },
+  {
+    "id": "live-clean",
+    "title": "Windscreen replacement",
+    "description": "A clean, complete claim. Expect a fast-track recommendation.",
+    "files": [
+      "claim_form.pdf",
+      "repair_invoice.pdf",
+      "rc_and_licence.pdf"
+    ]
+  },
+  {
+    "id": "live-mismatch",
+    "title": "Rear-end collision",
+    "description": "The photos tell a different story from the claim form.",
+    "files": [
+      "claim_form.pdf",
+      "repair_invoice.pdf",
+      "rc_and_licence.pdf"
+    ]
+  }
+]
