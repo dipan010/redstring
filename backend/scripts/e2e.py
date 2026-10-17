@@ -18,7 +18,7 @@ BUCKET = "redstring-511910.firebasestorage.app"
 REF = {"Referer": BASE + "/"}
 
 
-def main(submit: bool) -> None:
+def main(submit: bool, pack_id: str = "live-ring") -> None:
     c = httpx.Client(timeout=90)
     auth = c.post(f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={KEY}", headers=REF,
                   json={"returnSecureToken": True}).json()
@@ -40,7 +40,7 @@ def main(submit: bool) -> None:
     if not submit:
         return
     manifest = c.get(f"{BASE}/samples/manifest.json").json()
-    pack = next(p for p in manifest if p["id"] == "live-ring")
+    pack = next(p for p in manifest if p["id"] == pack_id)
     docs = []
     for f in pack["files"]:
         data = c.get(f"{BASE}/samples/{pack['id']}/{f}").content
@@ -51,7 +51,7 @@ def main(submit: bool) -> None:
         assert up.status_code == 200, up.text
         docs.append({"path": path, "name": f, "mime_type": mime})
     t = time.time()
-    created = c.post(f"{BASE}/api/claims", headers=H, json={"documents": docs, "sample_pack": "live-ring"}).json()
+    created = c.post(f"{BASE}/api/claims", headers=H, json={"documents": docs, "sample_pack": pack_id}).json()
     print("submitted:", created)
 
     # poll via Firestore REST (same data the UI streams with onSnapshot)
@@ -76,4 +76,4 @@ def main(submit: bool) -> None:
 
 
 if __name__ == "__main__":
-    main("--submit" in sys.argv)
+    main("--submit" in sys.argv, next((a for a in sys.argv[1:] if a.startswith("live-")), "live-ring"))
