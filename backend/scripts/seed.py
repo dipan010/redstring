@@ -1,6 +1,6 @@
 """Seed the demo world into Firestore + Storage and run the agents on demo claims.
 
-    uv run python scripts/seed.py --images     # generate the damage-photo pool with Imagen (once)
+    uv run python scripts/seed.py --images     # generate the damage-photo pool with Gemini image generation (once)
     uv run python scripts/seed.py --reset      # wipe claims/policies, re-seed, run pipeline
     uv run python scripts/seed.py --packs-only # just re-render sample packs into frontend/public/samples
 """
@@ -12,6 +12,7 @@ import json
 import os
 import random
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -28,14 +29,14 @@ from scenarios import (  # noqa: E402
 IMAGES = ROOT / "images"
 OUT = ROOT / "out"
 SAMPLES = ROOT.parent.parent / "frontend" / "public" / "samples"
-IMAGEN_MODEL = os.environ.get("IMAGEN_MODEL", "imagen-4.0-generate-001")
+IMAGE_MODEL = os.environ.get("IMAGE_MODEL", "gemini-3.1-flash-image")
 
 
 # ---------------- images ----------------
 
 
 def generate_images(force: bool = False) -> None:
-    from google.genai import types
+    from google.genai import errors, types
     from PIL import Image
 
     from app.clients import gemini
@@ -45,12 +46,22 @@ def generate_images(force: bool = False) -> None:
         path = IMAGES / f"{key}.jpg"
         if path.exists() and not force:
             continue
-        print(f"imagen: {key}")
-        resp = gemini().models.generate_images(
-            model=IMAGEN_MODEL, prompt=IMAGE_STYLE + prompt,
-            config=types.GenerateImagesConfig(number_of_images=1, aspect_ratio="4:3", person_generation="dont_allow"),
-        )
-        img = Image.open(io.BytesIO(resp.generated_images[0].image.image_bytes)).convert("RGB")
+        print(f"image: {key}")
+        for attempt in range(8):
+            try:
+                resp = gemini().models.generate_content(
+                    model=IMAGE_MODEL, contents=IMAGE_STYLE + prompt,
+                    config=types.GenerateContentConfig(response_modalities=["IMAGE"],
+                                                       image_config=types.ImageConfig(aspect_ratio="4:3")),
+                )
+                break
+            except errors.ClientError as e:
+                if e.code != 429 or attempt == 7:
+                    raise
+                print(f"  rate limited, retrying in {20 * (attempt + 1)}s")
+                time.sleep(20 * (attempt + 1))
+        data = next(p.inline_data.data for p in resp.candidates[0].content.parts if p.inline_data)
+        img = Image.open(io.BytesIO(data)).convert("RGB")
         img.thumbnail((1280, 1280))
         img.save(path, "JPEG", quality=86)
 
@@ -192,7 +203,7 @@ async def seed(process: bool) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--images", action="store_true", help="generate missing photos with Imagen")
+    ap.add_argument("--images", action="store_true", help="generate missing photos with Gemini")
     ap.add_argument("--force-images", action="store_true")
     ap.add_argument("--packs-only", action="store_true")
     ap.add_argument("--reset", action="store_true", help="wipe and re-seed Firestore/Storage")

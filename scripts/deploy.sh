@@ -3,7 +3,7 @@
 set -euo pipefail
 PROJECT=${PROJECT:-redstring-511910}
 REGION=${REGION:-us-central1}
-GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash}
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export PATH="$HOME/google-cloud-sdk/bin:$PATH"
 
@@ -14,7 +14,7 @@ if [[ "${1:-}" != "--web-only" ]]; then
     --allow-unauthenticated \
     --min-instances 1 --max-instances 4 --no-cpu-throttling \
     --cpu 1 --memory 1Gi --concurrency 40 --timeout 300 \
-    --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT,GOOGLE_CLOUD_LOCATION=$REGION,GEMINI_MODEL=$GEMINI_MODEL,STORAGE_BUCKET=$PROJECT.firebasestorage.app"
+    --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT,GOOGLE_CLOUD_LOCATION=$REGION,GEMINI_MODEL=$GEMINI_MODEL,GEMINI_LOCATION=global,STORAGE_BUCKET=$PROJECT.firebasestorage.app"
 fi
 
 echo "== Firebase Hosting + rules"

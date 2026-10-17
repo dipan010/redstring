@@ -21,15 +21,15 @@ MARINE = Garage("Marine Drive Autohaus", "27AAMFM3321R1Z5", "+91 22 6650 4411", 
 
 # ---------- image pool (generated once with Imagen) ----------
 IMAGE_PROMPTS = {
-    "rear_white_sedan": "white Honda City sedan, rear bumper dented and scraped after a minor rear-end collision",
-    "windscreen_white_suv": "white Tata Nexon compact SUV, windscreen with a large spider-web crack from a stone",
-    "windscreen_white_suv_b": "white Tata Nexon compact SUV, windscreen with a long crack across the driver side from a stone chip",
-    "door_grey_suv": "grey Hyundai Creta SUV, front left door with a deep dent and scratched paint",
-    "front_silver_hatch": "silver Maruti Suzuki Swift hatchback, crumpled front bumper and broken left headlamp",
-    "front_red_hatch": "red Hyundai i20 hatchback, crushed front bumper, bent bonnet and cracked grille",
-    "front_black_suv": "black Mahindra XUV700 SUV, heavily damaged front grille, bumper and right headlamp",
-    "old_rust_white_hatch": "white Maruti Suzuki Swift hatchback, old rusty dent on the rear quarter panel with faded, peeling paint and dirt in the dent",
-    "rear_blue_suv": "blue Kia Seltos SUV, rear bumper cracked and right tail lamp smashed",
+    "rear_white_sedan": "white Honda City sedan with Indian number plate reading exactly \"MH 12 KT 4471\", rear bumper dented and scraped after a minor rear-end collision",
+    "windscreen_white_suv": "white Tata Nexon compact SUV with Indian number plate reading exactly \"TN 09 BX 2290\", windscreen with a large spider-web crack from a stone",
+    "windscreen_white_suv_b": "white Tata Nexon compact SUV with Indian number plate reading exactly \"TN 09 CK 5512\", windscreen with a long crack across the driver side from a stone chip",
+    "door_grey_suv": "grey Hyundai Creta SUV with Indian number plate reading exactly \"KA 03 MN 7812\", front left door with a deep dent and scratched paint",
+    "front_silver_hatch": "silver Maruti Suzuki Swift hatchback with Indian number plate reading exactly \"MH 12 RS 9034\", crumpled front bumper and broken left headlamp",
+    "front_red_hatch": "red Hyundai i20 hatchback with Indian number plate reading exactly \"MH 02 FA 1187\", crushed front bumper, bent bonnet and cracked grille",
+    "front_black_suv": "black Mahindra XUV700 SUV with Indian number plate reading exactly \"MH 02 GH 6650\", heavily damaged front grille, bumper and right headlamp",
+    "old_rust_white_hatch": "white Maruti Suzuki Swift hatchback with Indian number plate reading exactly \"MH 14 DT 3021\", old rusty dent on the rear quarter panel with faded, peeling paint and dirt in the dent",
+    "rear_blue_suv": "blue Kia Seltos SUV with Indian number plate reading exactly \"MH 14 EV 5520\", rear bumper cracked and right tail lamp smashed",
 }
 IMAGE_STYLE = ("Realistic smartphone photo taken by a car owner for an insurance claim, parked on an Indian city street, "
                "daylight, the whole damaged area clearly visible, no people, no text, no watermark. Subject: ")

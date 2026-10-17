@@ -17,7 +17,7 @@ def db() -> firestore.AsyncClient:
 @lru_cache
 def gemini() -> genai.Client:
     s = get_settings()
-    return genai.Client(vertexai=True, project=s.google_cloud_project, location=s.google_cloud_location)
+    return genai.Client(vertexai=True, project=s.google_cloud_project, location=s.gemini_location)
 
 
 @lru_cache
