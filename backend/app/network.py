@@ -23,7 +23,13 @@ async def build_network(limit: int = 600) -> dict:
         for e in d.get("entities") or []:
             labels[e["key"]] = e["label"]
 
-    shared = {k: cids for k, cids in holders.items() if len(cids) >= 2}
+    def risky(cid: str) -> bool:
+        d = claims[cid]
+        return bool(d.get("fraudConfirmed")) or ((d.get("risk") or {}).get("score") or 0) >= 60
+
+    # Garages are shared by many honest customers; only draw them when they touch risky claims.
+    shared = {k: cids for k, cids in holders.items()
+              if len(cids) >= 2 and (not k.startswith("garage:") or sum(map(risky, cids)) >= 2)}
     linked_claims = {cid for cids in shared.values() for cid in cids}
 
     nodes = [
