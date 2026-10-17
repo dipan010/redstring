@@ -8,7 +8,7 @@ Redstring is an AI copilot for motor-insurance claim adjusters. Drop in a claim 
 
 **Live demo:** https://redstring-511910.web.app (click *Enter demo as adjuster*)
 
-**Benchmark** (held-out set of 32 synthetic claims, [details](docs/benchmark.md)): 100% precision, 94% recall, 0 of 14 clean claims falsely flagged, ~19 s median triage, ≈$0.033 (₹2.8) of Gemini per claim.
+**Benchmark** (held-out set of 32 synthetic claims, [details](docs/benchmark.md)): 95% precision, 100% recall, 1 of 14 clean claims falsely flagged, ~18 s median triage, ≈$0.036 (₹3.0) of Gemini per claim.
 
 ---
 

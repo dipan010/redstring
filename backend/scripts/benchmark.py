@@ -239,6 +239,9 @@ def write(summary: dict, rows: list[dict]) -> None:  # noqa: C901
         "so treat this as a functional check of the pipeline, not a production accuracy estimate.",
         "- Latency is end to end on Cloud Run-equivalent code: 4 Gemini calls (Reader, then Policy and Forensics in "
         "parallel, then Verdict) plus Firestore reads/writes. Calls slower than 25 s fall back to gemini-2.5-flash.",
+        "- Score = 100 × (1 − e^(−evidence points / 60)): each flag adds evidence with diminishing returns, "
+        "so scores spread out instead of capping at 100.",
+        "- Known limitation: Gemini occasionally confuses the vehicle's left and right sides in front-facing photos.",
         "- Reproduce: `cd backend && uv run python scripts/benchmark.py --seed 11`.",
     ]
     (DOCS / "benchmark.md").write_text("\n".join(lines) + "\n")
