@@ -15,7 +15,8 @@ Look for evidence that a claim is inconsistent or manipulated. Check:
    typical Indian market rates for that vehicle.
 5. Narrative inconsistencies between documents.
 Dates on Indian documents are DD/MM/YYYY. "Left" and "right" mean the vehicle's own sides
-(driver's perspective); only flag a side mismatch when the photo angle makes the side unambiguous.
+(driver's perspective). In a photo taken from in front of the car, the car's left side appears on the
+viewer's right. Only flag a side mismatch when the photo angle makes the side unambiguous.
 Report only findings supported by specific evidence. Return an empty list if the claim looks clean.
 Do not repeat simple arithmetic or date checks; those are handled separately."""
 
@@ -31,8 +32,10 @@ async def run(documents: list[dict], r: ReaderOutput) -> tuple[ForensicsOutput, 
         contents.append("ALREADY FLAGGED BY RULES (do not repeat these):\n" + "\n".join(f"- {f.title}" for f in flags))
     contents.append("Review this claim for inconsistencies.")
     out = await generate_json(contents, ForensicsOutput, SYSTEM)
+    downgrade = {"high": "medium", "medium": "low", "low": "low"}
     for i, f in enumerate(out.findings):
-        flags.append(Flag(id=f"AI_FORENSIC_{i}", agent="forensics", code="AI_FORENSIC", severity=f.severity,
+        severity = f.severity if f.confidence == "high" else downgrade[f.severity]
+        flags.append(Flag(id=f"AI_FORENSIC_{i}", agent="forensics", code="AI_FORENSIC", severity=severity,
                           title=f.title, evidence=f.evidence,
                           source=f"doc:{f.doc_index}" if f.doc_index is not None else None))
     return out, flags

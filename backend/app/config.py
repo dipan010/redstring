@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-3.5-flash"
     gemini_location: str = "global"  # newer Gemini models are served from the global endpoint
     gemini_fallback_model: str = "gemini-2.5-flash"  # used when the primary is slow or rate-limited
-    gemini_timeout_s: float = 45.0
+    gemini_timeout_s: float = 25.0
     storage_bucket: str = "redstring-511910.firebasestorage.app"
     auth_disabled: bool = False
 

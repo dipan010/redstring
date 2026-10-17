@@ -34,6 +34,15 @@ OUT = ROOT / "out" / "bench"
 PRICES = {"gemini-3.5-flash": (1.50, 9.00), "gemini-2.5-flash": (0.30, 2.50)}
 ALERT_AT = 25
 
+# what each photo actually shows (used so clean descriptions match the picture)
+VISIBLE = {
+    "front_red_hatch": ["front bumper", "bonnet", "grille", "left headlamp"],
+    "front_black_suv": ["front bumper", "grille", "right headlamp"],
+    "front_silver_hatch": ["front bumper", "left headlamp"],
+    "rear_blue_suv": ["rear bumper", "right tail lamp"],
+}
+GARAGE_CITY = {"Pune": CITYAUTO, "Mumbai": MARINE, "Bengaluru": KAVERI, "Chennai": GLASSPRO}
+
 # image key -> (plate, make/model, cc, colour, area)
 IMAGES = {
     "rear_white_sedan": ("MH 12 KT 4471", "Honda City ZX", 1498, "White", "rear"),
@@ -58,7 +67,7 @@ AREA = {
 }
 TELLS = ["invoice_before_incident", "invoice_arithmetic", "claim_above_invoice", "photo_mismatch",
          "invoice_name_mismatch", "incident_outside_period", "duplicate_invoice", "shared_bank", "old_damage"]
-CITIES = ["Pune", "Mumbai", "Bengaluru", "Chennai", "Hyderabad"]
+CITIES = ["Pune", "Mumbai", "Bengaluru", "Chennai"]
 
 
 def jitter_photo(key: str, dest: Path, rng: random.Random) -> None:
@@ -84,7 +93,12 @@ def make_claim(i: int, tell: str | None, rng: random.Random) -> tuple[ClaimSpec,
     if tell == "old_damage":
         desc, areas = "Found the rear quarter panel and bumper damaged by an unknown vehicle this morning.", \
             ["rear quarter panel", "rear bumper"]
+    if tell != "photo_mismatch" and key in VISIBLE:
+        areas = VISIBLE[key]
+        extra = [(f"{a.capitalize()} repair/replacement", 6500) for a in areas if a not in ("front bumper", "rear bumper")]
+        items = items[:1] + extra + items[-2:]
     items = [(d, int(a * rng.uniform(0.85, 1.25)) // 10 * 10) for d, a in items]
+    city = rng.choice(CITIES)
 
     name = rname(rng)
     incident = TODAY - timedelta(days=rng.randint(3, 20))
@@ -93,7 +107,7 @@ def make_claim(i: int, tell: str | None, rng: random.Random) -> tuple[ClaimSpec,
         start = incident + timedelta(days=rng.randint(5, 40))  # policy didn't exist yet
     policy = Policy(f"PCP-BENCH-{i:04d}", name, plate, model, start, rng.randint(5, 15) * 100000, cc)
 
-    garage = rng.choice([CITYAUTO, KAVERI, MARINE] if desc_area != "windscreen" else [GLASSPRO])
+    garage = GARAGE_CITY[city]  # repaired in the same city as the incident
     invoice_no = f"{garage.name[:3].upper()}/B/{rng.randint(10000, 99999)}"
     bank = racct(rng)
     if tell == "duplicate_invoice":
@@ -105,7 +119,7 @@ def make_claim(i: int, tell: str | None, rng: random.Random) -> tuple[ClaimSpec,
         id=f"bench-{i:03d}", title="benchmark", policy=policy, claimant=name, phone=rphone(rng),
         email=f"{name.split()[0].lower()}.{i}@example.com", bank_acct=bank, ifsc="HDFC0000001",
         incident=incident, incident_time=f"{rng.randint(7, 21):02d}:{rng.choice(['05', '20', '40'])}",
-        location=f"{rng.choice(CITIES)}", description=desc, damage_areas=areas, garage=garage,
+        location=city, description=desc, damage_areas=areas, garage=garage,
         invoice_no=invoice_no, line_items=items, photos=[key], colour=colour,
         invoice_offset_days=-rng.randint(2, 6) if tell == "invoice_before_incident" else rng.randint(2, 6),
         subtotal_override=(sum(a for _, a in items) + rng.randint(30, 80) * 100) if tell == "invoice_arithmetic" else None,

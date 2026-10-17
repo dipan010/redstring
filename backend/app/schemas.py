@@ -111,6 +111,8 @@ class ForensicFinding(BaseModel):
     severity: Severity
     evidence: str = Field(description="Specific evidence from the documents, quoting values where possible")
     doc_index: Optional[int]
+    confidence: Literal["low", "medium", "high"] = Field(
+        description="How certain the evidence is. Use high only when it is unambiguous from the documents/photos")
 
 
 class ForensicsOutput(BaseModel):

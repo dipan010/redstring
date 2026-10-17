@@ -110,8 +110,10 @@ def document_rules(r: ReaderOutput) -> list[Flag]:
             out.append(flag("forensics", "INVOICE_TOTAL", "medium", "Invoice total inconsistent with subtotal + tax",
                             f"Subtotal ₹{inv.subtotal:,.0f} + tax ₹{inv.tax or 0:,.0f} ≠ total ₹{inv.total:,.0f}."))
     if inv.total and r.claim_amount and r.claim_amount > inv.total * 1.05:
-        out.append(flag("forensics", "CLAIM_ABOVE_INVOICE", "medium", "Amount claimed is higher than the invoice",
-                        f"Claimed ₹{r.claim_amount:,.0f} vs invoice total ₹{inv.total:,.0f}."))
+        over = r.claim_amount / inv.total - 1
+        out.append(flag("forensics", "CLAIM_ABOVE_INVOICE", "high" if over > 0.2 else "medium",
+                        "Amount claimed is higher than the invoice",
+                        f"Claimed ₹{r.claim_amount:,.0f} vs invoice total ₹{inv.total:,.0f} ({over:.0%} more)."))
     if inv.name_on_invoice and not names_match(inv.name_on_invoice, r.claimant_name):
         out.append(flag("forensics", "INVOICE_NAME_MISMATCH", "medium", "Invoice issued to a different person",
                         f"Invoice name '{inv.name_on_invoice}' vs claimant '{r.claimant_name}'.", "clause:6.6"))
