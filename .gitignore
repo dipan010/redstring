@@ -22,4 +22,3 @@ Submission Template*.pptx
 deep-research-report-*.md
 backend/scripts/out/
 .DS_Store
-!frontend/.env.production
