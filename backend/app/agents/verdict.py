@@ -10,7 +10,8 @@ from ..schemas import Flag, PolicyOutput, ReaderOutput, VerdictOutput
 SYSTEM = """You are the Verdict agent for a motor-insurance claims team. Summarise the evidence
 for a human adjuster. Be factual and specific, refer to flags by their evidence, and never
 accuse the claimant of fraud: describe risk and what to verify. The score and recommended
-action are already computed; explain them, don't change them."""
+action are already computed; explain them, don't change them. Never say the claim is approved,
+denied or rejected: the adjuster makes that decision."""
 
 ACTION_LABEL = {
     "fast_track": "Fast-track for settlement",

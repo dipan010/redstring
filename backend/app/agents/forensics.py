@@ -14,6 +14,8 @@ Look for evidence that a claim is inconsistent or manipulated. Check:
 4. Invoice plausibility: parts unrelated to the described damage, or prices far above
    typical Indian market rates for that vehicle.
 5. Narrative inconsistencies between documents.
+Dates on Indian documents are DD/MM/YYYY. "Left" and "right" mean the vehicle's own sides
+(driver's perspective); only flag a side mismatch when the photo angle makes the side unambiguous.
 Report only findings supported by specific evidence. Return an empty list if the claim looks clean.
 Do not repeat simple arithmetic or date checks; those are handled separately."""
 
@@ -25,6 +27,8 @@ async def run(documents: list[dict], r: ReaderOutput) -> tuple[ForensicsOutput, 
         contents.append(f"Document {i}: {d['name']}")
         contents.append(doc_part(d["path"], d["mime_type"]))
     contents.append("EXTRACTED CLAIM FIELDS:\n" + r.model_dump_json(indent=2))
+    if flags:
+        contents.append("ALREADY FLAGGED BY RULES (do not repeat these):\n" + "\n".join(f"- {f.title}" for f in flags))
     contents.append("Review this claim for inconsistencies.")
     out = await generate_json(contents, ForensicsOutput, SYSTEM)
     for i, f in enumerate(out.findings):

@@ -16,7 +16,8 @@ SYSTEM = """You are the Policy agent at an Indian motor insurer. Using ONLY the 
 and schedule provided, decide whether the claim is covered, which exclusions apply, the
 deductible, an estimated payable amount (apply deductible and depreciation where the invoice
 allows), and which required documents are missing. Cite clause numbers and quote the wording
-exactly. Do not invent clauses."""
+exactly. Do not invent clauses. Do not apply the fraud clause (section 7) or judge honesty:
+other agents assess inconsistencies, and a human adjuster makes the final decision."""
 
 
 @lru_cache

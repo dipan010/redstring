@@ -49,3 +49,9 @@ def test_entities_normalised():
     keys = {e["key"] for e in entities(reader(invoice=inv))}
     assert {"phone:9876543210", "bank:123456789012", "vehicle:MH12AB1234", "garage:27ABC",
             "invoice:27ABC/INV77"} == keys
+
+
+def test_plate_with_model_suffix_is_not_a_mismatch():
+    from app.rules import plates_match
+    assert plates_match("MH 02 FA 1187 · Hyundai i20 Asta", "MH02FA1187")
+    assert not plates_match("MH 02 FA 1188", "MH 02 FA 1187")

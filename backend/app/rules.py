@@ -33,6 +33,14 @@ def names_match(a: str | None, b: str | None) -> bool:
     return len(ta & tb) >= min(len(ta), len(tb)) / 2
 
 
+def plates_match(a: str | None, b: str | None) -> bool:
+    """Registration numbers often carry extra text ('MH 02 FA 1187 · Hyundai i20')."""
+    na, nb = norm(a), norm(b)
+    if not na or not nb:
+        return True
+    return na in nb or nb in na
+
+
 def flag(agent: str, code: str, severity: str, title: str, evidence: str, source: str | None = None) -> Flag:
     return Flag(id=code, agent=agent, code=code, severity=severity, title=title, evidence=evidence, source=source)  # type: ignore[arg-type]
 
@@ -59,7 +67,7 @@ def policy_rules(r: ReaderOutput, policy: dict | None) -> list[Flag]:
                         "Schedule marks this policy as a break-in renewal.", "clause:6.5"))
 
     if r.vehicle_registration and policy.get("vehicleRegistration") and \
-            norm(r.vehicle_registration) != norm(policy["vehicleRegistration"]):
+            not plates_match(r.vehicle_registration, policy["vehicleRegistration"]):
         out.append(flag("policy", "VEHICLE_MISMATCH", "high", "Vehicle not the insured vehicle",
                         f"Claim is for {r.vehicle_registration}; policy covers {policy['vehicleRegistration']}.",
                         "clause:1.4"))
@@ -108,7 +116,7 @@ def document_rules(r: ReaderOutput) -> list[Flag]:
         out.append(flag("forensics", "INVOICE_NAME_MISMATCH", "medium", "Invoice issued to a different person",
                         f"Invoice name '{inv.name_on_invoice}' vs claimant '{r.claimant_name}'.", "clause:6.6"))
     if inv.vehicle_on_invoice and r.vehicle_registration and \
-            norm(inv.vehicle_on_invoice) != norm(r.vehicle_registration):
+            not plates_match(inv.vehicle_on_invoice, r.vehicle_registration):
         out.append(flag("forensics", "INVOICE_VEHICLE_MISMATCH", "high", "Invoice is for a different vehicle",
                         f"Invoice vehicle {inv.vehicle_on_invoice} vs claimed vehicle {r.vehicle_registration}.",
                         "clause:6.6"))
