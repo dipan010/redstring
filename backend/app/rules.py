@@ -1,12 +1,15 @@
 """Deterministic checks. These are cheap, reproducible and easy to audit; Gemini
 covers what rules can't (photos, narrative, document plausibility)."""
 
+import math
 import re
 from datetime import date
 
 from .schemas import Flag, ReaderOutput
 
 SEVERITY_POINTS = {"low": 6, "medium": 15, "high": 30}
+SCORE_SCALE = 60  # evidence points at which the score reaches ~63; each extra flag adds a little less
+MEDIUM_AT, HIGH_AT = 20, 60
 
 
 def parse_date(s: str | None) -> date | None:
@@ -130,16 +133,17 @@ def risk_score(flags: list[Flag]) -> int:
     pts = sum(SEVERITY_POINTS[f.severity] for f in active)
     # confirmed flags weigh more: an adjuster has verified them
     pts += sum(SEVERITY_POINTS[f.severity] // 2 for f in active if f.status == "confirmed")
-    return min(100, pts)
+    # Diminishing returns: more evidence always raises the score, but it only nears 100 when overwhelming.
+    return round(100 * (1 - math.exp(-pts / SCORE_SCALE)))
 
 
 def band(score: int) -> str:
-    return "high" if score >= 60 else "medium" if score >= 25 else "low"
+    return "high" if score >= HIGH_AT else "medium" if score >= MEDIUM_AT else "low"
 
 
 def action_for(score: int, missing_docs: list[str]) -> str:
-    if score >= 60:
+    if score >= HIGH_AT:
         return "investigate"
-    if score >= 25 or missing_docs:
+    if score >= MEDIUM_AT or missing_docs:
         return "request_info"
     return "fast_track"

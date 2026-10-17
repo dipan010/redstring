@@ -55,3 +55,15 @@ def test_plate_with_model_suffix_is_not_a_mismatch():
     from app.rules import plates_match
     assert plates_match("MH 02 FA 1187 · Hyundai i20 Asta", "MH02FA1187")
     assert not plates_match("MH 02 FA 1188", "MH 02 FA 1187")
+
+
+def test_score_has_diminishing_returns():
+    from app.rules import action_for, band, flag
+    one_high = [flag("forensics", "A", "high", "t", "e")]
+    four_high = [flag("forensics", c, "high", "t", "e") for c in "ABCD"]
+    eight_high = [flag("forensics", c, "high", "t", "e") for c in "ABCDEFGH"]
+    s1, s4, s8 = risk_score(one_high), risk_score(four_high), risk_score(eight_high)
+    assert s1 == 39 and 80 < s4 < s8 < 100          # more evidence -> higher, never capped flat
+    assert risk_score([flag("policy", "M", "medium", "t", "e")]) == 22
+    assert band(22) == "medium" and action_for(22, []) == "request_info"
+    assert action_for(risk_score(one_high + [flag("forensics", "B", "high", "t", "e")]), []) == "investigate"

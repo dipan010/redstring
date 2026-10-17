@@ -3,7 +3,7 @@
     uv run python scripts/benchmark.py [--n-clean 14] [--seed 7] [--concurrency 3]
 
 Ground truth: each claim is generated clean or with one planted fraud signal.
-Alert threshold (fixed before running): risk score >= 25, i.e. anything not "low" risk.
+Alert threshold (fixed before running): risk score >= 20, i.e. anything not "low" risk.
 Writes docs/benchmark.json and docs/benchmark.md. Benchmark claims are marked isBenchmark,
 so the Linker, queue and Red String graph ignore them.
 """
@@ -32,7 +32,7 @@ OUT = ROOT / "out" / "bench"
 # Per 1M tokens (input, output incl. thinking), USD. Gemini 3.5 Flash from third-party price trackers (Oct 2026);
 # verify against https://cloud.google.com/vertex-ai/generative-ai/pricing before quoting.
 PRICES = {"gemini-3.5-flash": (1.50, 9.00), "gemini-2.5-flash": (0.30, 2.50)}
-ALERT_AT = 25
+ALERT_AT = 20
 
 # what each photo actually shows (used so clean descriptions match the picture)
 VISIBLE = {

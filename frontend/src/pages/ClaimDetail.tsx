@@ -143,7 +143,7 @@ export function ClaimDetail() {
                     <span className="ml-auto flex flex-wrap gap-1">
                       {l.shared.map((s) => <span key={s.key} className="rounded border border-string/30 px-1.5 text-[11px] text-string">{KIND_LABEL[s.kind] ?? s.kind}</span>)}
                     </span>
-                    <RiskPill score={l.riskScore} band={l.riskScore == null ? undefined : l.riskScore >= 60 ? 'high' : l.riskScore >= 25 ? 'medium' : 'low'} />
+                    <RiskPill score={l.riskScore} band={l.riskScore == null ? undefined : l.riskScore >= 60 ? 'high' : l.riskScore >= 20 ? 'medium' : 'low'} />
                   </li>
                 ))}
               </ul>
