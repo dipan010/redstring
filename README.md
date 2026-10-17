@@ -8,6 +8,8 @@ Redstring is an AI copilot for motor-insurance claim adjusters. Drop in a claim 
 
 **Live demo:** https://redstring-511910.web.app (click *Enter demo as adjuster*)
 
+**Benchmark** (held-out set of 32 synthetic claims, [details](docs/benchmark.md)): 100% precision, 94% recall, 0 of 14 clean claims falsely flagged, ~19 s median triage, ≈$0.033 (₹2.8) of Gemini per claim.
+
 ---
 
 ## What it does
@@ -52,6 +54,8 @@ Browser (React, Firebase JS SDK)
   │                               Gemini on Vertex AI (reads gs:// docs)
 ```
 
+More: [submission description](docs/submission.md) · [benchmark](docs/benchmark.md) · [demo video script](docs/video-script.md)
+
 ## Repository layout
 
 ```
@@ -82,7 +86,14 @@ cd ../frontend && npm install && npm run dev # frontend, proxies /api to :8080
 
 # deploy
 ./scripts/deploy.sh
+
+# checks
+uv run python scripts/e2e.py --submit live-ring   # live end-to-end test as an anonymous user
+uv run python scripts/benchmark.py --seed 11      # held-out benchmark -> docs/benchmark.md
+uv run python scripts/seed.py --restore           # reset demo claims (removes evaluator submissions)
 ```
+
+Demo claims are read-only for evaluators (no re-runs), and each evaluator's queue and Red String view show the demo world plus only their own submissions.
 
 ## Demo data
 
