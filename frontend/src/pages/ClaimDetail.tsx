@@ -10,7 +10,7 @@ import { RiskPill, ScoreRing } from '../components/ScoreRing'
 import { StageTracker } from '../components/StageTracker'
 import { bandColor, inr } from '../format'
 import { storage } from '../firebase'
-import { useClaim } from '../hooks'
+import { useClaim, useReview, withReview } from '../hooks'
 import type { Claim } from '../types'
 
 const SEV_ORDER = { high: 0, medium: 1, low: 2 }
@@ -52,7 +52,9 @@ function Field({ label, value, mono }: { label: string; value?: string | number 
 
 export function ClaimDetail() {
   const { id } = useParams()
-  const { claim, error } = useClaim(id)
+  const { claim: shared, error } = useClaim(id)
+  const review = useReview(id)
+  const claim = shared ? withReview(shared, review) : shared
   const [actionBusy, setActionBusy] = useState(false)
 
   if (error) return <p className="text-string">Couldn't load this claim: {error}</p>

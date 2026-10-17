@@ -230,7 +230,7 @@ def write(summary: dict, rows: list[dict]) -> None:  # noqa: C901
         f"| Processing errors | {s['errors']} |", "",
         "## Recall by fraud signal", "", "| Signal | Detected |", "|---|---|",
         *[f"| {k.replace('_', ' ')} | {v} |" for k, v in s["per_tell_recall"].items()], "",
-        "Cost uses list prices per 1M tokens: " + ", ".join(f"{m} ${a} in / ${b} out" for m, (a, b) in PRICES.items()) + ".",
+        "Cost uses per-1M-token prices from third-party trackers (Oct 2026): " + ", ".join(f"{m} ${a} in / ${b} out" for m, (a, b) in PRICES.items()) + ".",
         "",
         "## Method and caveats", "",
         "- Severity weights and prompts were calibrated on a separate set (`--seed 7`); these numbers come from a "

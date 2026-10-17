@@ -138,17 +138,36 @@ async def _rescore(ref, claim: dict, flags: list[dict]) -> dict:
     return risk
 
 
+def _apply_reviews(claim: dict, review: dict) -> list[dict]:
+    statuses = review.get("flagStatus") or {}
+    return [{**f, "status": statuses.get(f["id"], f.get("status", "open"))} for f in claim.get("flags", [])]
+
+
 @app.post("/api/claims/{claim_id}/flags/{flag_id}")
 async def flag_feedback(claim_id: str, flag_id: str, body: FlagFeedbackRequest, uid: str = Depends(current_user)):
     ref, claim = await get_claim(claim_id)
+    if not any(f["id"] == flag_id for f in claim.get("flags", [])):
+        raise HTTPException(404, "Flag not found")
+    if claim.get("isDemo"):
+        # Demo claims are shared by all evaluators: keep each person's review private to them.
+        rref = ref.collection("reviews").document(uid)
+        snap = await rref.get()
+        review = snap.to_dict() if snap.exists else {}
+        review.setdefault("flagStatus", {})[flag_id] = body.status
+        flags = _apply_reviews(claim, review)
+        parsed = [Flag.model_validate(f) for f in flags]
+        score = risk_score(parsed)
+        missing = ((claim.get("policy") or {}).get("assessment") or {}).get("missing_documents") or []
+        action = action_for(score, missing)
+        risk = {**(claim.get("risk") or {}), "score": score, "band": band(score), "action": action,
+                "actionLabel": ACTION_LABEL[action]}
+        await rref.set({"flagStatus": review["flagStatus"], "risk": risk}, merge=True)
+        return {"risk": risk}
     flags = claim.get("flags", [])
     for f in flags:
         if f["id"] == flag_id:
             f["status"] = body.status
             f["reviewedBy"] = uid
-            break
-    else:
-        raise HTTPException(404, "Flag not found")
     risk = await _rescore(ref, claim, flags)
     await ref.collection("audit").add({"type": "flag", "flagId": flag_id, "status": body.status, "by": uid,
                                        "at": firestore.SERVER_TIMESTAMP})
@@ -157,8 +176,11 @@ async def flag_feedback(claim_id: str, flag_id: str, body: FlagFeedbackRequest, 
 
 @app.post("/api/claims/{claim_id}/decision")
 async def decision(claim_id: str, body: DecisionRequest, uid: str = Depends(current_user)):
-    ref, _ = await get_claim(claim_id)
+    ref, claim = await get_claim(claim_id)
     d = {"action": body.action, "note": body.note, "by": uid, "at": firestore.SERVER_TIMESTAMP}
+    if claim.get("isDemo"):
+        await ref.collection("reviews").document(uid).set({"decision": d}, merge=True)
+        return {"ok": True}
     await ref.update({"decision": d})
     await ref.collection("audit").add({"type": "decision", **d})
     return {"ok": True}

@@ -34,7 +34,7 @@ Alert = risk score ≥ 25 (medium or high risk). Fixed before running.
 | shared bank | 2/2 |
 | old damage | 2/2 |
 
-Cost uses list prices per 1M tokens: gemini-3.5-flash $1.5 in / $9.0 out, gemini-2.5-flash $0.3 in / $2.5 out.
+Cost uses per-1M-token prices from third-party trackers (Oct 2026): gemini-3.5-flash $1.5 in / $9.0 out, gemini-2.5-flash $0.3 in / $2.5 out.
 
 ## Method and caveats
 

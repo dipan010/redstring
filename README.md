@@ -34,7 +34,7 @@ The **Red String** view shows the whole network: claims connected by shared iden
 | **Gemini image generation** (`gemini-3.1-flash-image`) | Generating the synthetic damage photos for the demo data |
 | **Cloud Run** | The FastAPI backend (`redstring-api`) running the agent pipeline; always-warm instance, background processing |
 | **Firebase Hosting** | Serves the React app and routes `/api/**` to Cloud Run |
-| **Firebase Authentication** | Google sign-in and one-click anonymous demo login; ID tokens verified by the API |
+| **Firebase Authentication** | One-click anonymous demo login; ID tokens verified by the API on every request |
 | **Cloud Firestore** | Claims, live per-agent progress (streamed to the UI with `onSnapshot`), flags, links, chat history, audit trail, policies |
 | **Cloud Storage for Firebase** | Uploaded claim documents, read by Gemini directly via `gs://` URIs |
 
@@ -90,7 +90,7 @@ cd ../frontend && npm install && npm run dev # frontend, proxies /api to :8080
 # checks
 uv run python scripts/e2e.py --submit live-ring   # live end-to-end test as an anonymous user
 uv run python scripts/benchmark.py --seed 11      # held-out benchmark -> docs/benchmark.md
-uv run python scripts/seed.py --restore           # reset demo claims (removes evaluator submissions)
+uv run python scripts/seed.py --restore           # reset demo claims; deletes ALL non-demo claims, never run during judging
 ```
 
 Demo claims are read-only for evaluators (no re-runs), and each evaluator's queue and Red String view show the demo world plus only their own submissions.

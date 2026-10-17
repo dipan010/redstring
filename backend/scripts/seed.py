@@ -241,7 +241,7 @@ async def restore() -> None:
             "risk": {**(d.get("risk") or {}), "score": score, "band": band(score), "action": action,
                      "actionLabel": ACTION_LABEL[action]},
         })
-        for sub in ("audit", "chats"):
+        for sub in ("audit", "chats", "reviews"):
             await client.recursive_delete(snap.reference.collection(sub))
         print(f"restored {d['claimNumber']} risk={score}")
     # remove evaluator submissions

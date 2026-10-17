@@ -34,3 +34,26 @@ export function useClaim(id: string | undefined) {
   }, [id])
   return { claim, error }
 }
+
+export type Review = { flagStatus?: Record<string, 'open' | 'confirmed' | 'dismissed'>; risk?: Claim['risk']; decision?: Claim['decision'] }
+
+/** This user's private review of a shared demo claim (flag feedback, rescored risk, decision). */
+export function useReview(id: string | undefined) {
+  const [review, setReview] = useState<Review | null>(null)
+  useEffect(() => {
+    const uid = auth.currentUser?.uid
+    if (!id || !uid) return
+    return onSnapshot(doc(db, 'claims', id, 'reviews', uid), (s) => setReview(s.exists() ? (s.data() as Review) : null), () => setReview(null))
+  }, [id])
+  return review
+}
+
+export function withReview(claim: Claim, review: Review | null): Claim {
+  if (!review || !claim.isDemo) return claim
+  return {
+    ...claim,
+    flags: claim.flags.map((f) => ({ ...f, status: review.flagStatus?.[f.id] ?? f.status })),
+    risk: review.risk ?? claim.risk,
+    decision: review.decision ?? claim.decision,
+  }
+}
