@@ -45,7 +45,7 @@ function Field({ label, value, mono }: { label: string; value?: string | number 
   return (
     <div>
       <dt className="text-[11px] uppercase tracking-wide text-muted">{label}</dt>
-      <dd className={`mt-0.5 text-sm ${mono ? 'font-mono text-xs' : ''}`}>{value ?? '—'}</dd>
+      <dd className={`mt-0.5 text-sm ${mono ? 'font-mono text-xs' : ''}`}>{value ?? '-'}</dd>
     </div>
   )
 }
@@ -188,7 +188,7 @@ export function ClaimDetail() {
               <Field label="Amount claimed" value={inr(x.claim_amount)} />
               <Field label="Phone" value={x.claimant_phone} mono />
               <Field label="Garage" value={x.invoice?.garage_name} />
-              <Field label="Invoice" value={x.invoice ? `#${x.invoice.number ?? '—'} · ${x.invoice.date ?? ''}` : null} />
+              <Field label="Invoice" value={x.invoice ? `#${x.invoice.number ?? '-'} · ${x.invoice.date ?? ''}` : null} />
               <Field label="Invoice total" value={inr(x.invoice?.total)} />
             </dl>
             {x.incident_description && <p className="mt-3 text-sm text-muted">“{x.incident_description}”</p>}

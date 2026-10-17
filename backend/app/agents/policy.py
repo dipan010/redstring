@@ -51,7 +51,7 @@ async def run(r: ReaderOutput) -> tuple[PolicyOutput | None, list[Flag], dict | 
     )
     for c in out.exclusions_triggered:
         flags.append(Flag(id=f"EXCLUSION_{c.clause_id}", agent="policy", code="EXCLUSION", severity="high",
-                          title=f"Exclusion {c.clause_id}: {c.title}", evidence=f"“{c.quote}” — {c.reason}",
+                          title=f"Exclusion {c.clause_id}: {c.title}", evidence=f"“{c.quote}” {c.reason}",
                           source=f"clause:{c.clause_id}"))
     if out.missing_documents:
         flags.append(Flag(id="MISSING_DOCS", agent="policy", code="MISSING_DOCS", severity="low",

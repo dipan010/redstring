@@ -1,4 +1,4 @@
-# Private Car Package Policy — Policy Wording (Demo)
+# Private Car Package Policy: Policy Wording (Demo)
 
 Issued by: Redstring Demo General Insurance (fictional insurer used for demonstration only).
 Product code: PCP-OD-2026

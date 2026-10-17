@@ -151,9 +151,9 @@ def _wrap(s: str, n: int) -> list[str]:
 
 def claim_form(s: ClaimSpec, path: Path) -> None:
     c = canvas.Canvas(str(path), pagesize=A4)
-    y = _header(c, "MOTOR CLAIM FORM — OWN DAMAGE", f"{INSURER} · Private Car Package Policy")
+    y = _header(c, "MOTOR CLAIM FORM: OWN DAMAGE", f"{INSURER} · Private Car Package Policy")
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(18 * mm, y, "Section A — Policy & Insured")
+    c.drawString(18 * mm, y, "Section A: Policy & Insured")
     y = _rows(c, y - 16, [
         ("Policy number", s.policy.number),
         ("Name of insured", s.claimant),
@@ -161,14 +161,14 @@ def claim_form(s: ClaimSpec, path: Path) -> None:
         ("Email", s.email),
     ])
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(18 * mm, y - 4, "Section B — Vehicle")
+    c.drawString(18 * mm, y - 4, "Section B: Vehicle")
     y = _rows(c, y - 20, [
         ("Registration no.", s.vehicle),
         ("Make / model", s.policy.make_model),
         ("Colour", s.colour),
     ])
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(18 * mm, y - 4, "Section C — Incident")
+    c.drawString(18 * mm, y - 4, "Section C: Incident")
     y = _rows(c, y - 20, [
         ("Date of incident", s.incident.strftime("%d/%m/%Y")),
         ("Time", s.incident_time),
@@ -180,7 +180,7 @@ def claim_form(s: ClaimSpec, path: Path) -> None:
         ("Amount claimed (INR)", f"{s.claimed:,}"),
     ])
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(18 * mm, y - 4, "Section D — Bank details for settlement")
+    c.drawString(18 * mm, y - 4, "Section D: Bank details for settlement")
     y = _rows(c, y - 20, [("Account number", s.bank_acct), ("IFSC", s.ifsc), ("Account holder", s.claimant)])
     c.setFont("Helvetica", 8.5)
     c.drawString(18 * mm, y - 6, "I declare that the information above is true and complete to the best of my knowledge.")
@@ -233,7 +233,7 @@ def invoice(s: ClaimSpec, path: Path) -> None:
         c.drawRightString(W - 20 * mm, y, f"{v:,.2f}")
     c.setFont("Helvetica", 8.5)
     c.drawString(18 * mm, 30 * mm, "Certified that the above repairs were carried out on the vehicle mentioned.")
-    c.drawString(18 * mm, 24 * mm, f"For {s.garage.name} — Authorised signatory")
+    c.drawString(18 * mm, 24 * mm, f"For {s.garage.name} (Authorised signatory)")
     c.showPage()
     c.save()
 
@@ -263,7 +263,7 @@ def kyc(s: ClaimSpec, path: Path) -> None:
 
 def fir(s: ClaimSpec, path: Path) -> None:
     c = canvas.Canvas(str(path), pagesize=A4)
-    y = _header(c, "FIRST INFORMATION REPORT (extract)", "Police Station — Traffic (specimen for demo)")
+    y = _header(c, "FIRST INFORMATION REPORT (extract)", "Police Station, Traffic (specimen for demo)")
     _rows(c, y - 4, [
         ("FIR no.", s.fir_number or ""),
         ("Date of report", s.filed.strftime("%d/%m/%Y")),

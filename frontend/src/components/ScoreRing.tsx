@@ -17,7 +17,7 @@ export function ScoreRing({ score, band, size = 120 }: { score?: number; band?: 
 }
 
 export function RiskPill({ score, band }: { score?: number; band?: string }) {
-  if (score == null) return <span className="text-muted text-xs">—</span>
+  if (score == null) return <span className="text-muted text-xs">-</span>
   const cls = band === 'high' ? 'bg-string/15 text-string' : band === 'medium' ? 'bg-warn/15 text-warn' : 'bg-ok/15 text-ok'
   return <span className={`inline-flex min-w-10 justify-center rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums ${cls}`}>{score}</span>
 }

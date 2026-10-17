@@ -1,5 +1,5 @@
 export const inr = (n?: number | null) =>
-  n == null ? '—' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
+  n == null ? '-' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
 
 export const bandColor = (band?: string) =>
   band === 'high' ? 'text-string' : band === 'medium' ? 'text-warn' : band === 'low' ? 'text-ok' : 'text-muted'

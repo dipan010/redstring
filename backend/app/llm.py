@@ -45,6 +45,11 @@ def summarize_usage(calls: list) -> dict:
     return out
 
 
+def no_em_dash(text: str) -> str:
+    """House style: no em dashes in anything we show (Gemini likes them)."""
+    return text.replace(" — ", ", ").replace("—", "-")
+
+
 def doc_part(path: str, mime_type: str) -> types.Part:
     """A Storage object passed to Gemini by URI (no re-upload of bytes)."""
     return types.Part.from_uri(file_uri=f"gs://{get_settings().storage_bucket}/{path}", mime_type=mime_type)
@@ -83,9 +88,7 @@ async def generate_json(
                 timeout=s.gemini_timeout_s,
             )
             _record(model, resp)
-            if resp.parsed is not None:
-                return resp.parsed  # type: ignore[return-value]
-            return schema.model_validate_json(resp.text or "")
+            return schema.model_validate_json(no_em_dash(resp.text or ""))
         except (errors.APIError, ValueError, asyncio.TimeoutError) as e:
             last = e
             log.warning("gemini %s attempt %d/%d failed: %r", model, i + 1, attempts, e)
@@ -104,7 +107,7 @@ async def generate_text(contents: list, system: str, temperature: float = 0.3, t
                 timeout=s.gemini_timeout_s,
             )
             _record(model, resp)
-            return resp.text or ""
+            return no_em_dash(resp.text or "")
         except (errors.APIError, asyncio.TimeoutError) as e:
             log.warning("gemini %s text call failed: %r", model, e)
     raise RuntimeError("Gemini text call failed")

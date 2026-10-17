@@ -39,7 +39,7 @@ export function Queue() {
         <Tile icon={Inbox} label="In queue" value={claims.length} />
         <Tile icon={AlertTriangle} label="Refer to SIU" value={ready.filter((c) => c.risk?.action === 'investigate').length} tone="text-string" />
         <Tile icon={CheckCircle2} label="Fast-track" value={ready.filter((c) => c.risk?.action === 'fast_track').length} tone="text-ok" />
-        <Tile icon={Clock} label="Avg. triage time" value={avgS ? `${avgS.toFixed(0)}s` : '—'} />
+        <Tile icon={Clock} label="Avg. triage time" value={avgS ? `${avgS.toFixed(0)}s` : '-'} />
       </div>
       <div className="overflow-x-auto rounded-lg border border-line">
         <table className="w-full min-w-[720px] text-sm">
@@ -61,8 +61,8 @@ export function Queue() {
                 <td className="px-4 py-3 font-mono text-xs">
                   <Link to={`/claims/${c.id}`} className="hover:text-string">{c.claimNumber}</Link>
                 </td>
-                <td className="px-4 py-3">{c.claimantName ?? '—'}</td>
-                <td className="px-4 py-3 font-mono text-xs text-muted">{c.vehicleRegistration ?? '—'}</td>
+                <td className="px-4 py-3">{c.claimantName ?? '-'}</td>
+                <td className="px-4 py-3 font-mono text-xs text-muted">{c.vehicleRegistration ?? '-'}</td>
                 <td className="px-4 py-3 text-right tabular-nums">{inr(c.claimAmount)}</td>
                 <td className="px-4 py-3 text-muted">{c.status === 'ready' ? c.flags.filter((f) => f.status !== 'dismissed').length : ''}</td>
                 <td className="px-4 py-3">

@@ -52,7 +52,7 @@ def policy_rules(r: ReaderOutput, policy: dict | None) -> list[Flag]:
     out: list[Flag] = []
     if policy is None:
         out.append(flag("policy", "POLICY_NOT_FOUND", "high", "Policy number not found",
-                        f"No active policy matches '{r.policy_number or '—'}'."))
+                        f"No active policy matches '{r.policy_number or 'none'}'."))
         return out
 
     incident = parse_date(r.incident_date)

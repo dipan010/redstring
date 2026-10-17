@@ -114,7 +114,7 @@ export function Network() {
             {hover.type === 'claim' ? (
               <>
                 <p className="font-mono font-semibold">{hover.label}</p>
-                <p className="text-muted">{hover.claimant} · risk {hover.score ?? '—'}{hover.fraudConfirmed ? ' · confirmed fraud' : ''}</p>
+                <p className="text-muted">{hover.claimant} · risk {hover.score ?? '-'}{hover.fraudConfirmed ? ' · confirmed fraud' : ''}</p>
               </>
             ) : (
               <p><span className="text-muted">{ENTITY_LABEL[hover.type]}:</span> {hover.label}</p>
