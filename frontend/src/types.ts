@@ -31,6 +31,7 @@ export interface Claim {
   error?: string | null
   isDemo?: boolean
   inQueue?: boolean
+  createdBy?: string
   createdAt?: { toDate(): Date }
   claimantName?: string
   vehicleRegistration?: string

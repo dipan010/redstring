@@ -111,10 +111,20 @@ async def create_claim(body: CreateClaimRequest, bg: BackgroundTasks, uid: str =
 async def rerun(claim_id: str, bg: BackgroundTasks, uid: str = Depends(current_user)):
     rate_limit("claims", uid, get_settings().claims_per_user_per_hour)
     ref, claim = await get_claim(claim_id)
-    if claim.get("status") in ("queued", "processing"):
+    if claim.get("isDemo"):
+        raise HTTPException(403, "Demo claims are fixed so every evaluator sees the same results. Submit a sample pack to watch the agents run live.")
+    if claim.get("status") in ("queued", "processing") and not _stale(claim):
         raise HTTPException(409, "Claim is already being processed")
     bg.add_task(run_pipeline, claim_id)
     return {"ok": True}
+
+
+def _stale(claim: dict, minutes: int = 3) -> bool:
+    """A claim stuck in processing (e.g. instance restarted mid-pipeline) can be re-run."""
+    import datetime as dt
+    times = [v.get("at") for v in (claim.get("stages") or {}).values() if v.get("at")]
+    last = max(times) if times else claim.get("createdAt")
+    return last is None or dt.datetime.now(dt.timezone.utc) - last > dt.timedelta(minutes=minutes)
 
 
 async def _rescore(ref, claim: dict, flags: list[dict]) -> dict:
@@ -211,4 +221,4 @@ async def draft(claim_id: str, body: DraftRequest, uid: str = Depends(current_us
 
 @app.get("/api/network")
 async def network(uid: str = Depends(current_user)):
-    return await build_network()
+    return await build_network(uid)

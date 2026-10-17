@@ -1,6 +1,6 @@
 import { ArrowRight, FileSearch, Network, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
-import { signInDemo, signInGoogle } from '../auth'
+import { signInDemo } from '../auth'
 import { Logo } from '../components/Logo'
 
 export function Login() {
@@ -34,8 +34,6 @@ export function Login() {
             className="inline-flex items-center gap-2 rounded-lg bg-string px-5 py-3 font-medium text-white hover:brightness-110">
             Enter demo as adjuster <ArrowRight size={16} />
           </button>
-          <button onClick={() => go(signInGoogle)}
-            className="rounded-lg border border-line px-5 py-3 font-medium hover:border-muted">Sign in with Google</button>
         </div>
         {error && <p className="mt-4 text-sm text-string">{error}</p>}
         <p className="mt-10 text-xs text-muted">Demo data only. All claimants, policies and garages are fictional.</p>

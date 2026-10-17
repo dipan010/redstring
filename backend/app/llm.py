@@ -57,6 +57,7 @@ async def generate_json(
         except (errors.APIError, ValueError, asyncio.TimeoutError) as e:
             last = e
             log.warning("gemini %s attempt %d/%d failed: %r", model, i + 1, attempts, e)
+            await asyncio.sleep(2 * (i + 1))
     raise RuntimeError(f"Gemini call failed after {attempts} attempts: {last!r}")
 
 

@@ -52,9 +52,10 @@ function Field({ label, value, mono }: { label: string; value?: string | number 
 
 export function ClaimDetail() {
   const { id } = useParams()
-  const claim = useClaim(id)
+  const { claim, error } = useClaim(id)
   const [actionBusy, setActionBusy] = useState(false)
 
+  if (error) return <p className="text-string">Couldn't load this claim: {error}</p>
   if (claim === undefined) return <Loader2 className="animate-spin text-muted" />
   if (claim === null) return <p className="text-muted">Claim not found. <Link to="/" className="text-string">Back to queue</Link></p>
 
@@ -75,7 +76,7 @@ export function ClaimDetail() {
         <h1 className="font-mono text-lg font-semibold">{claim.claimNumber}</h1>
         {claim.isDemo && <span className="rounded border border-line px-1.5 text-[10px] uppercase text-muted">demo</span>}
         <span className="text-sm text-muted">{x.claimant_name}{x.vehicle_make_model ? ` · ${x.vehicle_make_model}` : ''}</span>
-        {(claim.status === 'ready' || claim.status === 'error') && (
+        {!claim.isDemo && (claim.status === 'ready' || claim.status === 'error') && (
           <button onClick={() => api(`/claims/${claim.id}/rerun`, {})} className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted hover:text-text">
             <RefreshCw size={13} /> Re-run agents
           </button>

@@ -76,6 +76,8 @@ async def run(claim_id: str, r: ReaderOutput, documents: list[dict], sample_pack
         if snap.id == claim_id:
             continue
         d = snap.to_dict()
+        if d.get("isBenchmark"):
+            continue
         if sample_pack and d.get("samplePack") == sample_pack:
             continue  # another evaluator ran the same sample pack; not a real link
         others[snap.id] = d

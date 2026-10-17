@@ -21,7 +21,8 @@ function Tile({ icon: Icon, label, value, tone = '' }: { icon: typeof Inbox; lab
 }
 
 export function Queue() {
-  const claims = useQueue()
+  const { claims, error } = useQueue()
+  if (error) return <p className="text-string">Couldn't load the queue: {error}</p>
   if (!claims) return <Loader2 className="animate-spin text-muted" />
 
   const ready = claims.filter((c) => c.status === 'ready')

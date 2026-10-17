@@ -217,6 +217,41 @@ async def redo(ids: list[str]) -> None:
         await run_pipeline(s.id)
 
 
+async def restore() -> None:
+    """Undo evaluator interactions on demo claims: reopen flags, clear decisions, chats and audit.
+    No Gemini calls, so results stay exactly as seeded."""
+    from google.cloud import firestore
+
+    from app.agents.verdict import ACTION_LABEL
+    from app.clients import db
+    from app.rules import action_for, band, risk_score
+    from app.schemas import Flag
+
+    client = db()
+    async for snap in client.collection("claims").where(filter=firestore.FieldFilter("isDemo", "==", True)).stream():
+        d = snap.to_dict()
+        if not d.get("inQueue"):
+            continue
+        flags = [{**f, "status": "open", "reviewedBy": None} for f in d.get("flags", [])]
+        score = risk_score([Flag.model_validate(f) for f in flags])
+        missing = ((d.get("policy") or {}).get("assessment") or {}).get("missing_documents") or []
+        action = action_for(score, missing)
+        await snap.reference.update({
+            "flags": flags, "decision": firestore.DELETE_FIELD,
+            "risk": {**(d.get("risk") or {}), "score": score, "band": band(score), "action": action,
+                     "actionLabel": ACTION_LABEL[action]},
+        })
+        for sub in ("audit", "chats"):
+            await client.recursive_delete(snap.reference.collection(sub))
+        print(f"restored {d['claimNumber']} risk={score}")
+    # remove evaluator submissions
+    n = 0
+    async for snap in client.collection("claims").where(filter=firestore.FieldFilter("isDemo", "==", False)).stream():
+        await client.recursive_delete(snap.reference)
+        n += 1
+    print(f"removed {n} evaluator submissions")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--images", action="store_true", help="generate missing photos with Gemini")
@@ -226,10 +261,14 @@ def main() -> None:
     ap.add_argument("--reset", action="store_true", help="wipe and re-seed Firestore/Storage")
     ap.add_argument("--no-process", action="store_true", help="seed without running the agents")
     ap.add_argument("--redo", nargs="*", help="re-run these demo claim ids in place")
+    ap.add_argument("--restore", action="store_true", help="reset demo claims to their seeded state")
     a = ap.parse_args()
     if a.images or a.force_images:
         generate_images(force=a.force_images, only=a.only)
     render_sample_packs()
+    if a.restore:
+        asyncio.run(restore())
+        return
     if a.packs_only:
         return
     if a.redo:

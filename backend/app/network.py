@@ -8,11 +8,12 @@ from .clients import db
 ENTITY_KINDS = ("phone", "email", "bank", "vehicle", "garage", "invoice", "photo")
 
 
-async def build_network(limit: int = 600) -> dict:
+async def build_network(uid: str, limit: int = 800) -> dict:
+    """Seeded demo world plus only this user's own submissions (judges don't see each other's)."""
     claims: dict[str, dict] = {}
     async for snap in db().collection("claims").limit(limit).stream():
         d = snap.to_dict()
-        if d.get("linkKeys"):
+        if d.get("linkKeys") and not d.get("isBenchmark") and (d.get("isDemo") or d.get("createdBy") == uid):
             claims[snap.id] = d
 
     holders: dict[str, list[str]] = defaultdict(list)
