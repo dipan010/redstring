@@ -40,19 +40,52 @@ The **Red String** view shows the whole network: claims connected by shared iden
 
 ## Architecture
 
+```mermaid
+flowchart LR
+    U(["Adjuster / evaluator<br/>browser"])
+
+    subgraph FB["Firebase"]
+        H["Firebase Hosting<br/>React app + /api/** rewrite"]
+        A["Firebase Authentication<br/>one-click demo login"]
+        S[("Cloud Storage for Firebase<br/>claim documents and photos")]
+    end
+
+    subgraph CR["Cloud Run: redstring-api (FastAPI)"]
+        API["REST API<br/>verifies Firebase ID token"]
+        subgraph P["Background agent pipeline"]
+            R["1 · Reader<br/>extract fields"]
+            PO["2 · Policy<br/>cover and clauses"]
+            FO["3 · Forensics<br/>inconsistencies"]
+            L["4 · Linker<br/>related claims"]
+            V["5 · Verdict<br/>score + explanation"]
+        end
+    end
+
+    G{{"Gemini on Vertex AI<br/>gemini-3.5-flash<br/>fallback gemini-2.5-flash"}}
+    F[("Cloud Firestore<br/>claims · live agent status · flags<br/>entity link keys · chat · audit")]
+
+    U -->|sign in| A
+    U -->|load app| H
+    U -->|upload documents| S
+    H -->|"/api/** (submit claim, chat, review)"| API
+    API -->|start in background| R
+    R --> PO & FO & L
+    PO & FO & L --> V
+    P -.->|"prompts + gs:// URIs"| G
+    G -.->|reads documents directly| S
+    L <-->|shared-entity lookup| F
+    P -->|stage status + results| F
+    F ==>|"onSnapshot: live progress"| U
+
+    classDef google fill:#fdeeee,stroke:#e5484d,color:#111318
+    classDef dark fill:#161920,stroke:#161920,color:#ffffff
+    classDef agent fill:#f4f5f7,stroke:#dde0e5,color:#111318
+    class H,A,S,F google
+    class G,API dark
+    class R,PO,FO,L,V agent
 ```
-Browser (React, Firebase JS SDK)
-  │  upload docs ──────────────► Cloud Storage for Firebase
-  │  live updates ◄──────────── Cloud Firestore (onSnapshot)
-  │  /api/** ──► Firebase Hosting ──► Cloud Run: redstring-api (FastAPI)
-  │                                      │ POST /claims → returns immediately
-  │                                      ▼ background pipeline
-  │                          Reader ─► Policy ┐
-  │                                    Forensics ├─► Verdict ─► Firestore
-  │                                    Linker ┘
-  │                                      │
-  │                               Gemini on Vertex AI (reads gs:// docs)
-```
+
+Source: [`docs/architecture.mmd`](docs/architecture.mmd) · PNG: [`docs/architecture.png`](docs/architecture.png)
 
 More: [submission description](docs/submission.md) · [benchmark](docs/benchmark.md) · [demo video script](docs/video-script.md)
 
