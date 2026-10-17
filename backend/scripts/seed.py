@@ -35,7 +35,7 @@ IMAGE_MODEL = os.environ.get("IMAGE_MODEL", "gemini-3.1-flash-image")
 # ---------------- images ----------------
 
 
-def generate_images(force: bool = False) -> None:
+def generate_images(force: bool = False, only: list[str] | None = None) -> None:
     from google.genai import errors, types
     from PIL import Image
 
@@ -44,6 +44,8 @@ def generate_images(force: bool = False) -> None:
     IMAGES.mkdir(exist_ok=True)
     for key, prompt in IMAGE_PROMPTS.items():
         path = IMAGES / f"{key}.jpg"
+        if only and key not in only:
+            continue
         if path.exists() and not force:
             continue
         print(f"image: {key}")
@@ -201,18 +203,37 @@ async def seed(process: bool) -> None:
               f"  flags={[f['code'] for f in d.get('flags', [])]}")
 
 
+async def redo(ids: list[str]) -> None:
+    """Re-render, re-upload and re-run selected demo claims without wiping anything."""
+    from app.clients import bucket
+    from app.pipeline import run_pipeline
+
+    for s in [x for x in demo_claims() if x.id in ids]:
+        out = OUT / "packs" / s.id
+        for fname, mime in render_pack(s, out, IMAGES):
+            await asyncio.to_thread(bucket().blob(f"demo/{s.id}/{fname}").upload_from_filename, str(out / fname),
+                                    content_type=mime)
+        print(f"pipeline: {s.id}")
+        await run_pipeline(s.id)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--images", action="store_true", help="generate missing photos with Gemini")
     ap.add_argument("--force-images", action="store_true")
+    ap.add_argument("--only", nargs="*", help="regenerate only these image keys")
     ap.add_argument("--packs-only", action="store_true")
     ap.add_argument("--reset", action="store_true", help="wipe and re-seed Firestore/Storage")
     ap.add_argument("--no-process", action="store_true", help="seed without running the agents")
+    ap.add_argument("--redo", nargs="*", help="re-run these demo claim ids in place")
     a = ap.parse_args()
     if a.images or a.force_images:
-        generate_images(force=a.force_images)
+        generate_images(force=a.force_images, only=a.only)
     render_sample_packs()
     if a.packs_only:
+        return
+    if a.redo:
+        asyncio.run(redo(a.redo))
         return
     if a.reset:
         asyncio.run(seed(process=not a.no_process))

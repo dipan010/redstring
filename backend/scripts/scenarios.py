@@ -32,7 +32,8 @@ IMAGE_PROMPTS = {
     "rear_blue_suv": "blue Kia Seltos SUV with Indian number plate reading exactly \"MH 14 EV 5520\", rear bumper cracked and right tail lamp smashed",
 }
 IMAGE_STYLE = ("Realistic smartphone photo taken by a car owner for an insurance claim, parked on an Indian city street, "
-               "daylight, the whole damaged area clearly visible, no people, no text, no watermark. Subject: ")
+               "daylight, the whole damaged area clearly visible, no people, no text, no watermark. The car is privately "
+               "owned and has a WHITE private registration plate with black letters (not yellow). Subject: ")
 
 # ---------- policies ----------
 P = {
@@ -75,7 +76,7 @@ def demo_claims() -> list[ClaimSpec]:
                   ["windscreen_white_suv"], label="clean"),
         ClaimSpec("demo-clean-door", "Door dent in parking", P["sneha"], "Sneha Kulkarni", "+91 99000 34512",
                   "sneha.k@example.com", "771100229933", "SBIN0004455", d(12), "13:05", "Phoenix Mall parking, Bengaluru",
-                  "Another car's door hit the front left door while parked at the mall.",
+                  "A reversing SUV scraped hard along the front left door while I was parked at the mall.",
                   ["front left door"], KAVERI, "KM/OD/5521",
                   [("Front left door denting", 3800), ("Door painting", 5200), ("Labour", 2000)],
                   ["door_grey_suv"], colour="Grey", label="clean"),
