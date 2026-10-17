@@ -207,7 +207,7 @@ def report(rows: list[dict]) -> dict:
     }
 
 
-def write(summary: dict, rows: list[dict]) -> None:
+def write(summary: dict, rows: list[dict]) -> None:  # noqa: C901
     DOCS.mkdir(exist_ok=True)
     (DOCS / "benchmark.json").write_text(json.dumps({"summary": summary, "rows": rows}, indent=2, default=str))
     s = summary
@@ -231,6 +231,15 @@ def write(summary: dict, rows: list[dict]) -> None:
         "## Recall by fraud signal", "", "| Signal | Detected |", "|---|---|",
         *[f"| {k.replace('_', ' ')} | {v} |" for k, v in s["per_tell_recall"].items()], "",
         "Cost uses list prices per 1M tokens: " + ", ".join(f"{m} ${a} in / ${b} out" for m, (a, b) in PRICES.items()) + ".",
+        "",
+        "## Method and caveats", "",
+        "- Severity weights and prompts were calibrated on a separate set (`--seed 7`); these numbers come from a "
+        "freshly generated set (`--seed 11`) that was not used for tuning.",
+        "- The set is small (32 claims) and synthetic. Real claims are messier (scans, handwriting, partial packs), "
+        "so treat this as a functional check of the pipeline, not a production accuracy estimate.",
+        "- Latency is end to end on Cloud Run-equivalent code: 4 Gemini calls (Reader, then Policy and Forensics in "
+        "parallel, then Verdict) plus Firestore reads/writes. Calls slower than 25 s fall back to gemini-2.5-flash.",
+        "- Reproduce: `cd backend && uv run python scripts/benchmark.py --seed 11`.",
     ]
     (DOCS / "benchmark.md").write_text("\n".join(lines) + "\n")
 

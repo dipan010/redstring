@@ -6,18 +6,18 @@ Alert = risk score ≥ 25 (medium or high risk). Fixed before running.
 
 | Metric | Value |
 |---|---|
-| Precision | 89% |
-| Recall | 89% |
-| F1 | 0.89 |
-| False-positive rate | 14% |
-| Accuracy | 88% |
-| Clean claims fast-tracked | 12/14 |
-| Confusion (TP/FP/TN/FN) | 16/2/12/2 |
-| Latency p50 / p95 / max | 17.3s / 61.9s / 62.6s |
+| Precision | 100% |
+| Recall | 94% |
+| F1 | 0.97 |
+| False-positive rate | 0% |
+| Accuracy | 97% |
+| Clean claims fast-tracked | 14/14 |
+| Confusion (TP/FP/TN/FN) | 17/0/14/1 |
+| Latency p50 / p95 / max | 19.2s / 40.1s / 41.0s |
 | Gemini calls per claim | 4 |
-| Tokens per claim (in / out / thinking) | 13,114 / 1,797 / 0 |
-| Model cost per claim | $0.0333 |
-| Calls served by fallback model | 18 |
+| Tokens per claim (in / out / thinking) | 13,167 / 1,831 / 0 |
+| Model cost per claim | $0.0334 |
+| Calls served by fallback model | 17 |
 | Processing errors | 0 |
 
 ## Recall by fraud signal
@@ -26,12 +26,19 @@ Alert = risk score ≥ 25 (medium or high risk). Fixed before running.
 |---|---|
 | invoice before incident | 2/2 |
 | invoice arithmetic | 2/2 |
-| claim above invoice | 0/2 |
+| claim above invoice | 2/2 |
 | photo mismatch | 2/2 |
-| invoice name mismatch | 2/2 |
+| invoice name mismatch | 1/2 |
 | incident outside period | 2/2 |
 | duplicate invoice | 2/2 |
 | shared bank | 2/2 |
 | old damage | 2/2 |
 
 Cost uses list prices per 1M tokens: gemini-3.5-flash $1.5 in / $9.0 out, gemini-2.5-flash $0.3 in / $2.5 out.
+
+## Method and caveats
+
+- Severity weights and prompts were calibrated on a separate set (`--seed 7`); these numbers come from a freshly generated set (`--seed 11`) that was not used for tuning.
+- The set is small (32 claims) and synthetic. Real claims are messier (scans, handwriting, partial packs), so treat this as a functional check of the pipeline, not a production accuracy estimate.
+- Latency is end to end on Cloud Run-equivalent code: 4 Gemini calls (Reader, then Policy and Forensics in parallel, then Verdict) plus Firestore reads/writes. Calls slower than 25 s fall back to gemini-2.5-flash.
+- Reproduce: `cd backend && uv run python scripts/benchmark.py --seed 11`.
