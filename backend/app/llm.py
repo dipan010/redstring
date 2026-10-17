@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from contextvars import ContextVar
 from typing import TypeVar
 
 from google.genai import errors, types
@@ -12,6 +13,36 @@ from .config import get_settings
 
 log = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
+
+# Token usage of every Gemini call in the current pipeline run (shared with gathered child tasks).
+_usage: ContextVar[list | None] = ContextVar("gemini_usage", default=None)
+
+
+def start_usage() -> list:
+    calls: list = []
+    _usage.set(calls)
+    return calls
+
+
+def _record(model: str, resp) -> None:
+    calls, u = _usage.get(), getattr(resp, "usage_metadata", None)
+    if calls is not None and u is not None:
+        calls.append({"model": model, "in": u.prompt_token_count or 0, "out": u.candidates_token_count or 0,
+                      "think": u.thoughts_token_count or 0})
+
+
+def summarize_usage(calls: list) -> dict:
+    out = {"calls": len(calls), "inputTokens": 0, "outputTokens": 0, "thinkingTokens": 0, "byModel": {}}
+    for c in calls:
+        out["inputTokens"] += c["in"]
+        out["outputTokens"] += c["out"]
+        out["thinkingTokens"] += c["think"]
+        m = out["byModel"].setdefault(c["model"], {"calls": 0, "in": 0, "out": 0, "think": 0})
+        m["calls"] += 1
+        m["in"] += c["in"]
+        m["out"] += c["out"]
+        m["think"] += c["think"]
+    return out
 
 
 def doc_part(path: str, mime_type: str) -> types.Part:
@@ -51,6 +82,7 @@ async def generate_json(
                 gemini().aio.models.generate_content(model=model, contents=contents, config=config),
                 timeout=s.gemini_timeout_s,
             )
+            _record(model, resp)
             if resp.parsed is not None:
                 return resp.parsed  # type: ignore[return-value]
             return schema.model_validate_json(resp.text or "")
@@ -71,6 +103,7 @@ async def generate_text(contents: list, system: str, temperature: float = 0.3, t
                 gemini().aio.models.generate_content(model=model, contents=contents, config=config),
                 timeout=s.gemini_timeout_s,
             )
+            _record(model, resp)
             return resp.text or ""
         except (errors.APIError, asyncio.TimeoutError) as e:
             log.warning("gemini %s text call failed: %r", model, e)

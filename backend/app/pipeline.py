@@ -9,6 +9,7 @@ from google.cloud import firestore
 
 from .agents import forensics, linker, policy, reader, verdict
 from .clients import db
+from .llm import start_usage, summarize_usage
 from .schemas import Flag
 
 log = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ async def run_pipeline(claim_id: str) -> None:
     claim = snap.to_dict()
     docs = claim["documents"]
     t0 = time.monotonic()
+    usage = start_usage()
 
     async def timed(name: str, coro):
         await _stage(ref, name, "running")
@@ -71,6 +73,7 @@ async def run_pipeline(claim_id: str) -> None:
             "risk": risk,
             "verdict": v.model_dump(),
             "processingMs": int((time.monotonic() - t0) * 1000),
+            "usage": summarize_usage(usage),
             "processedAt": firestore.SERVER_TIMESTAMP,
         })
     except Exception as e:

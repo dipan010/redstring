@@ -21,7 +21,10 @@ export function ChatPanel({ claimId }: { claimId: string }) {
     const q = query(collection(db, 'claims', claimId, 'chats', user.uid, 'messages'), orderBy('at'), limit(100))
     return onSnapshot(q, (s) => setMsgs(s.docs.map((d) => ({ id: d.id, ...d.data() }) as Msg)))
   }, [claimId, user])
-  useEffect(() => end.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), [msgs, busy])
+  useEffect(() => {
+    // braces matter: newer browsers return a Promise from scrollIntoView, which React would treat as a cleanup
+    end.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [msgs, busy])
 
   const send = async (message: string) => {
     if (!message.trim() || busy) return

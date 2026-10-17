@@ -1,0 +1,968 @@
+{
+  "summary": {
+    "claims": 32,
+    "processed": 32,
+    "errors": 0,
+    "alert_threshold": 25,
+    "tp": 16,
+    "fp": 2,
+    "tn": 12,
+    "fn": 2,
+    "precision": 0.889,
+    "recall": 0.889,
+    "f1": 0.889,
+    "false_positive_rate": 0.143,
+    "accuracy": 0.875,
+    "per_tell_recall": {
+      "invoice_before_incident": "2/2",
+      "invoice_arithmetic": "2/2",
+      "claim_above_invoice": "0/2",
+      "photo_mismatch": "2/2",
+      "invoice_name_mismatch": "2/2",
+      "incident_outside_period": "2/2",
+      "duplicate_invoice": "2/2",
+      "shared_bank": "2/2",
+      "old_damage": "2/2"
+    },
+    "clean_fast_tracked": "12/14",
+    "latency_s": {
+      "p50": 17.3,
+      "p95": 61.9,
+      "max": 62.6
+    },
+    "avg_tokens": {
+      "inputTokens": 13114,
+      "outputTokens": 1797,
+      "thinkingTokens": 0
+    },
+    "avg_gemini_calls": 4,
+    "cost_per_claim_usd": 0.0333,
+    "fallback_calls": 18
+  },
+  "rows": [
+    {
+      "id": "bench-000",
+      "label": "fraud",
+      "tell": "shared_bank",
+      "status": "ready",
+      "score": 30,
+      "action": "request_info",
+      "flags": [
+        "SHARED_BANK"
+      ],
+      "ms": 22109,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 2027,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1661,
+            "in": 12224,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 366,
+            "in": 1577,
+            "think": 0
+          }
+        },
+        "inputTokens": 13801,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-001",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 30,
+      "action": "request_info",
+      "flags": [
+        "AI_FORENSIC"
+      ],
+      "ms": 14674,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1759,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1759,
+            "in": 13639,
+            "think": 0
+          }
+        },
+        "inputTokens": 13639,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-002",
+      "label": "fraud",
+      "tell": "claim_above_invoice",
+      "status": "ready",
+      "score": 15,
+      "action": "fast_track",
+      "flags": [
+        "CLAIM_ABOVE_INVOICE"
+      ],
+      "ms": 62561,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1575,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 2,
+            "out": 309,
+            "in": 5858,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 2,
+            "out": 1266,
+            "in": 4550,
+            "think": 0
+          }
+        },
+        "inputTokens": 10408,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-003",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 16076,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1840,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1540,
+            "in": 12415,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 300,
+            "in": 1308,
+            "think": 0
+          }
+        },
+        "inputTokens": 13723,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-004",
+      "label": "fraud",
+      "tell": "shared_bank",
+      "status": "ready",
+      "score": 45,
+      "action": "request_info",
+      "flags": [
+        "AI_FORENSIC",
+        "SHARED_BANK"
+      ],
+      "ms": 59912,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1774,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1545,
+            "in": 12170,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 229,
+            "in": 1461,
+            "think": 0
+          }
+        },
+        "inputTokens": 13631,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-005",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 15,
+      "action": "fast_track",
+      "flags": [
+        "AI_FORENSIC"
+      ],
+      "ms": 14769,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1984,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1984,
+            "in": 14026,
+            "think": 0
+          }
+        },
+        "inputTokens": 14026,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-006",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 23945,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1657,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1657,
+            "in": 13435,
+            "think": 0
+          }
+        },
+        "inputTokens": 13435,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-007",
+      "label": "fraud",
+      "tell": "invoice_name_mismatch",
+      "status": "ready",
+      "score": 45,
+      "action": "request_info",
+      "flags": [
+        "EXCLUSION",
+        "INVOICE_NAME_MISMATCH"
+      ],
+      "ms": 18633,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1560,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1555,
+            "in": 9119,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 5,
+            "in": 2520,
+            "think": 0
+          }
+        },
+        "inputTokens": 11639,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-008",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 13949,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1654,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1654,
+            "in": 13434,
+            "think": 0
+          }
+        },
+        "inputTokens": 13434,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-009",
+      "label": "fraud",
+      "tell": "invoice_before_incident",
+      "status": "ready",
+      "score": 90,
+      "action": "investigate",
+      "flags": [
+        "EXCLUSION",
+        "INVOICE_BEFORE_INCIDENT",
+        "AI_FORENSIC"
+      ],
+      "ms": 13660,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1655,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1655,
+            "in": 13878,
+            "think": 0
+          }
+        },
+        "inputTokens": 13878,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-010",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 17189,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1717,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1712,
+            "in": 8988,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 5,
+            "in": 2500,
+            "think": 0
+          }
+        },
+        "inputTokens": 11488,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-011",
+      "label": "fraud",
+      "tell": "invoice_before_incident",
+      "status": "ready",
+      "score": 45,
+      "action": "request_info",
+      "flags": [
+        "INVOICE_BEFORE_INCIDENT",
+        "AI_FORENSIC"
+      ],
+      "ms": 61885,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1553,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1352,
+            "in": 10886,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 201,
+            "in": 2515,
+            "think": 0
+          }
+        },
+        "inputTokens": 13401,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-012",
+      "label": "fraud",
+      "tell": "invoice_name_mismatch",
+      "status": "ready",
+      "score": 45,
+      "action": "request_info",
+      "flags": [
+        "EXCLUSION",
+        "INVOICE_NAME_MISMATCH"
+      ],
+      "ms": 15053,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1683,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1381,
+            "in": 12256,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 302,
+            "in": 1390,
+            "think": 0
+          }
+        },
+        "inputTokens": 13646,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-013",
+      "label": "fraud",
+      "tell": "incident_outside_period",
+      "status": "ready",
+      "score": 90,
+      "action": "investigate",
+      "flags": [
+        "INCIDENT_OUTSIDE_PERIOD",
+        "EXCLUSION",
+        "EXCLUSION"
+      ],
+      "ms": 48223,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1614,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1234,
+            "in": 12192,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 380,
+            "in": 1430,
+            "think": 0
+          }
+        },
+        "inputTokens": 13622,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-014",
+      "label": "fraud",
+      "tell": "photo_mismatch",
+      "status": "ready",
+      "score": 30,
+      "action": "request_info",
+      "flags": [
+        "AI_FORENSIC"
+      ],
+      "ms": 20834,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1646,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 2,
+            "out": 1249,
+            "in": 7734,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 2,
+            "out": 397,
+            "in": 3795,
+            "think": 0
+          }
+        },
+        "inputTokens": 11529,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-015",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 14245,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1713,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1713,
+            "in": 13523,
+            "think": 0
+          }
+        },
+        "inputTokens": 13523,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-016",
+      "label": "fraud",
+      "tell": "incident_outside_period",
+      "status": "ready",
+      "score": 90,
+      "action": "investigate",
+      "flags": [
+        "INCIDENT_OUTSIDE_PERIOD",
+        "EXCLUSION",
+        "EXCLUSION"
+      ],
+      "ms": 15346,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1720,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1720,
+            "in": 13932,
+            "think": 0
+          }
+        },
+        "inputTokens": 13932,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-017",
+      "label": "fraud",
+      "tell": "duplicate_invoice",
+      "status": "ready",
+      "score": 30,
+      "action": "request_info",
+      "flags": [
+        "DUPLICATE_INVOICE"
+      ],
+      "ms": 19342,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 2401,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 2401,
+            "in": 14319,
+            "think": 0
+          }
+        },
+        "inputTokens": 14319,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-018",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 22047,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1831,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1008,
+            "in": 8656,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 823,
+            "in": 2128,
+            "think": 0
+          }
+        },
+        "inputTokens": 10784,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-019",
+      "label": "fraud",
+      "tell": "invoice_arithmetic",
+      "status": "ready",
+      "score": 30,
+      "action": "request_info",
+      "flags": [
+        "INVOICE_ARITHMETIC"
+      ],
+      "ms": 17913,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1808,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1803,
+            "in": 9087,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 5,
+            "in": 2525,
+            "think": 0
+          }
+        },
+        "inputTokens": 11612,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-020",
+      "label": "fraud",
+      "tell": "duplicate_invoice",
+      "status": "ready",
+      "score": 30,
+      "action": "request_info",
+      "flags": [
+        "DUPLICATE_INVOICE"
+      ],
+      "ms": 20103,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1729,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1400,
+            "in": 12239,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 329,
+            "in": 1293,
+            "think": 0
+          }
+        },
+        "inputTokens": 13532,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-021",
+      "label": "fraud",
+      "tell": "claim_above_invoice",
+      "status": "ready",
+      "score": 21,
+      "action": "request_info",
+      "flags": [
+        "MISSING_DOCS",
+        "CLAIM_ABOVE_INVOICE"
+      ],
+      "ms": 18088,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1793,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1171,
+            "in": 10965,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 622,
+            "in": 2433,
+            "think": 0
+          }
+        },
+        "inputTokens": 13398,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-022",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 61886,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1700,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 1695,
+            "in": 9045,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 5,
+            "in": 2544,
+            "think": 0
+          }
+        },
+        "inputTokens": 11589,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-023",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 14151,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1740,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1740,
+            "in": 13605,
+            "think": 0
+          }
+        },
+        "inputTokens": 13605,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-024",
+      "label": "fraud",
+      "tell": "invoice_arithmetic",
+      "status": "ready",
+      "score": 30,
+      "action": "request_info",
+      "flags": [
+        "INVOICE_ARITHMETIC"
+      ],
+      "ms": 14775,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1845,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1845,
+            "in": 13732,
+            "think": 0
+          }
+        },
+        "inputTokens": 13732,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-025",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 15,
+      "action": "fast_track",
+      "flags": [
+        "AI_FORENSIC"
+      ],
+      "ms": 17271,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1995,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1995,
+            "in": 13760,
+            "think": 0
+          }
+        },
+        "inputTokens": 13760,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-026",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 0,
+      "action": "fast_track",
+      "flags": [],
+      "ms": 25389,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1828,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 3,
+            "out": 963,
+            "in": 8782,
+            "think": 0
+          },
+          "gemini-2.5-flash": {
+            "calls": 1,
+            "out": 865,
+            "in": 2128,
+            "think": 0
+          }
+        },
+        "inputTokens": 10910,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-027",
+      "label": "fraud",
+      "tell": "old_damage",
+      "status": "ready",
+      "score": 60,
+      "action": "investigate",
+      "flags": [
+        "EXCLUSION",
+        "AI_FORENSIC"
+      ],
+      "ms": 14628,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1890,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1890,
+            "in": 13955,
+            "think": 0
+          }
+        },
+        "inputTokens": 13955,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-028",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 15,
+      "action": "fast_track",
+      "flags": [
+        "AI_FORENSIC"
+      ],
+      "ms": 13226,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1847,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1847,
+            "in": 13738,
+            "think": 0
+          }
+        },
+        "inputTokens": 13738,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-029",
+      "label": "clean",
+      "tell": null,
+      "status": "ready",
+      "score": 30,
+      "action": "request_info",
+      "flags": [
+        "AI_FORENSIC"
+      ],
+      "ms": 17276,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1998,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1998,
+            "in": 14012,
+            "think": 0
+          }
+        },
+        "inputTokens": 14012,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-030",
+      "label": "fraud",
+      "tell": "old_damage",
+      "status": "ready",
+      "score": 60,
+      "action": "investigate",
+      "flags": [
+        "EXCLUSION",
+        "AI_FORENSIC"
+      ],
+      "ms": 16442,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 2065,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 2065,
+            "in": 13994,
+            "think": 0
+          }
+        },
+        "inputTokens": 13994,
+        "thinkingTokens": 0
+      }
+    },
+    {
+      "id": "bench-031",
+      "label": "fraud",
+      "tell": "photo_mismatch",
+      "status": "ready",
+      "score": 60,
+      "action": "investigate",
+      "flags": [
+        "EXCLUSION",
+        "AI_FORENSIC"
+      ],
+      "ms": 15691,
+      "usage": {
+        "calls": 4,
+        "outputTokens": 1910,
+        "byModel": {
+          "gemini-3.5-flash": {
+            "calls": 4,
+            "out": 1910,
+            "in": 13963,
+            "think": 0
+          }
+        },
+        "inputTokens": 13963,
+        "thinkingTokens": 0
+      }
+    }
+  ]
+}
