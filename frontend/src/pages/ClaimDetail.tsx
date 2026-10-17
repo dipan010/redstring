@@ -63,6 +63,10 @@ export function ClaimDetail() {
   const pa = claim.policy?.assessment
   const flags = [...(claim.flags ?? [])].sort((a, b) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity])
   const working = claim.status === 'queued' || claim.status === 'processing'
+  // A garage is shared by many honest customers: only surface garage-only links to risky claims.
+  const allLinks = claim.links ?? []
+  const links = allLinks.filter((l) => l.shared.some((x) => x.kind !== 'garage') || l.fraudConfirmed || (l.riskScore ?? 0) >= 60)
+  const routine = allLinks.length - links.length
 
   const decide = async (action: string) => {
     setActionBusy(true)
@@ -125,11 +129,11 @@ export function ClaimDetail() {
           </section>
 
           {/* Linked claims */}
-          {!!claim.links?.length && (
+          {links.length > 0 && (
             <section>
-              <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold"><Link2 size={15} className="text-string" /> Red strings: linked claims ({claim.links.length})</h2>
+              <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold"><Link2 size={15} className="text-string" /> Red strings: linked claims ({links.length})</h2>
               <ul className="divide-y divide-line rounded-lg border border-line bg-panel text-sm">
-                {claim.links.map((l) => (
+                {links.map((l) => (
                   <li key={l.claimId} className="flex flex-wrap items-center gap-3 px-3 py-2">
                     <Link to={`/claims/${l.claimId}`} className="font-mono text-xs hover:text-string">{l.claimNumber}</Link>
                     <span>{l.claimantName}</span>
@@ -141,7 +145,10 @@ export function ClaimDetail() {
                   </li>
                 ))}
               </ul>
-              <Link to={`/network?focus=${claim.id}`} className="mt-2 inline-flex items-center gap-1 text-xs text-string">Open in Red String view <ExternalLink size={12} /></Link>
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-xs">
+                <Link to={`/network?focus=${claim.id}`} className="inline-flex items-center gap-1 text-string">Open in Red String view <ExternalLink size={12} /></Link>
+                {routine > 0 && <span className="text-muted">+{routine} routine claims at the same garage (not shown)</span>}
+              </div>
             </section>
           )}
 
