@@ -1,0 +1,24 @@
+# secrets
+.env
+.env.*
+!.env.example
+*service-account*.json
+*-sa.json
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# node
+node_modules/
+dist/
+.firebase/
+firebase-debug.log*
+
+# local working files (not part of the submission repo)
+Submission Template*.pptx
+deep-research-report-*.md
+backend/scripts/out/
+.DS_Store

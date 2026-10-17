@@ -1,0 +1,29 @@
+[project]
+name = "redstring-api"
+version = "0.1.0"
+description = "Redstring: AI claim-fraud triage API (Cloud Run)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "google-genai>=1.20",
+    "google-cloud-firestore>=2.19",
+    "google-cloud-storage>=2.18",
+    "firebase-admin>=6.5",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+]
+
+[dependency-groups]
+dev = [
+    "reportlab>=4.2",
+    "pillow>=10.4",
+    "httpx>=0.27",
+    "pytest>=8.3",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

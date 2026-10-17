@@ -1,0 +1,11 @@
+rules_version = '2';
+// All writes go through the Cloud Run API (Admin SDK bypasses these rules).
+// Signed-in users (including anonymous demo users) can read.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}
