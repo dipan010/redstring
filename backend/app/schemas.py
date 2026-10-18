@@ -155,6 +155,7 @@ class CreateClaimRequest(BaseModel):
     documents: list[UploadedDoc] = Field(min_length=1, max_length=10)
     note: Optional[str] = Field(default=None, max_length=1000)
     sample_pack: Optional[str] = Field(default=None, pattern=r"^[a-z0-9-]{1,40}$")
+    line_of_business: Literal["motor", "health", "property"] = "motor"
 
 
 class ChatRequest(BaseModel):

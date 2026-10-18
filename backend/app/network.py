@@ -8,12 +8,16 @@ from .clients import db
 ENTITY_KINDS = ("phone", "email", "bank", "vehicle", "garage", "invoice", "photo")
 
 
-async def build_network(uid: str, limit: int = 800) -> dict:
+PROVIDER_KINDS = ("garage", "hospital", "doctor", "contractor")
+
+
+async def build_network(uid: str, limit: int = 1200, include_staged: bool = False) -> dict:
     """Seeded demo world plus only this user's own submissions (judges don't see each other's)."""
     claims: dict[str, dict] = {}
     async for snap in db().collection("claims").limit(limit).stream():
         d = snap.to_dict()
-        if d.get("linkKeys") and not d.get("isBenchmark") and (d.get("isDemo") or d.get("createdBy") == uid):
+        visible = d.get("isDemo") or d.get("createdBy") == uid or (include_staged and d.get("staged"))
+        if d.get("linkKeys") and not d.get("isBenchmark") and visible:
             claims[snap.id] = d
 
     holders: dict[str, list[str]] = defaultdict(list)
@@ -28,9 +32,10 @@ async def build_network(uid: str, limit: int = 800) -> dict:
         d = claims[cid]
         return bool(d.get("fraudConfirmed")) or ((d.get("risk") or {}).get("score") or 0) >= 60
 
-    # Garages are shared by many honest customers; only draw them when they touch risky claims.
+    # Garages, hospitals, doctors and contractors serve many honest customers; only draw them when they
+    # touch risky claims.
     shared = {k: cids for k, cids in holders.items()
-              if len(cids) >= 2 and (not k.startswith("garage:") or sum(map(risky, cids)) >= 2)}
+              if len(cids) >= 2 and (k.split(":", 1)[0] not in PROVIDER_KINDS or sum(map(risky, cids)) >= 2)}
     linked_claims = {cid for cids in shared.values() for cid in cids}
 
     nodes = [

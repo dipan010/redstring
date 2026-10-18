@@ -29,6 +29,10 @@ async def run_pipeline(claim_id: str) -> bool:
     ref = db().collection("claims").document(claim_id)
     snap = await ref.get()
     claim = snap.to_dict()
+    line = claim.get("lineOfBusiness", "motor")
+    if line != "motor":  # health / property have their own agents; motor below is unchanged
+        from .lines import run as run_line
+        return await run_line(line, claim_id)
     docs = claim["documents"]
     t0 = time.monotonic()
     usage = start_usage()

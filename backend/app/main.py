@@ -119,6 +119,7 @@ async def create_claim(body: CreateClaimRequest, uid: str = Depends(current_user
         "documents": [d.model_dump() for d in body.documents],
         "note": body.note,
         "samplePack": body.sample_pack,
+        "lineOfBusiness": body.line_of_business,
         "stages": initial_stages(),
         "flags": [],
         "linkKeys": [],
@@ -272,5 +273,5 @@ async def draft(claim_id: str, body: DraftRequest, uid: str = Depends(current_us
 
 
 @app.get("/api/network")
-async def network(uid: str = Depends(current_user)):
-    return await build_network(uid)
+async def network(preview: bool = False, uid: str = Depends(current_user)):
+    return await build_network(uid, include_staged=preview)

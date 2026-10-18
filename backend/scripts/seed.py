@@ -254,6 +254,8 @@ async def restore() -> None:
     # remove evaluator submissions
     n = 0
     async for snap in client.collection("claims").where(filter=firestore.FieldFilter("isDemo", "==", False)).stream():
+        if (snap.to_dict() or {}).get("staged"):
+            continue  # unreleased health/property data being prepared on a hidden revision
         await client.recursive_delete(snap.reference)
         n += 1
     print(f"removed {n} evaluator submissions")
