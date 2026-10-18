@@ -32,8 +32,7 @@ The **Red String** view shows the whole network: claims connected by shared iden
 |---|---|
 | **Gemini on Vertex AI** (`gemini-3.5-flash`) | All five agents: multimodal document reading, policy reasoning, forensic review, explanations, chat and correspondence drafting |
 | **Gemini image generation** (`gemini-3.1-flash-image`) | Generating the synthetic damage photos for the demo data |
-| **Cloud Run** | The FastAPI backend (`redstring-api`) running the agent pipeline; scales to zero, CPU billed only while handling requests |
-| **Cloud Tasks** | Queues each claim for the pipeline and calls back into Cloud Run, with automatic retries |
+| **Cloud Run** | The FastAPI backend (`redstring-api`) running the agent pipeline; always-warm instance, background processing |
 | **Firebase Hosting** | Serves the React app and routes `/api/**` to Cloud Run |
 | **Firebase Authentication** | One-click anonymous demo login; ID tokens verified by the API on every request |
 | **Cloud Firestore** | Claims, live per-agent progress (streamed to the UI with `onSnapshot`), flags, links, chat history, audit trail, policies |
@@ -53,7 +52,7 @@ flowchart LR
 
     subgraph CR["Cloud Run: redstring-api (FastAPI)"]
         API["REST API<br/>verifies Firebase ID token"]
-        subgraph P["Agent pipeline (one Cloud Tasks request per claim)"]
+        subgraph P["Background agent pipeline"]
             R["1 · Reader<br/>extract fields"]
             PO["2 · Policy<br/>cover and clauses"]
             FO["3 · Forensics<br/>inconsistencies"]
@@ -69,8 +68,7 @@ flowchart LR
     U -->|load app| H
     U -->|upload documents| S
     H -->|"/api/** (submit claim, chat, review)"| API
-    API -->|enqueue claim| Q[["Cloud Tasks<br/>queue + retries"]]
-    Q -->|"/internal/run-pipeline"| R
+    API -->|start in background| R
     R --> PO & FO & L
     PO & FO & L --> V
     P -.->|"prompts + gs:// URIs"| G
@@ -84,7 +82,6 @@ flowchart LR
     classDef agent fill:#f4f5f7,stroke:#dde0e5,color:#111318
     class H,A,S,F google
     class G,API dark
-    class Q google
     class R,PO,FO,L,V agent
 ```
 
@@ -127,13 +124,6 @@ cd ../frontend && npm install && npm run dev # frontend, proxies /api to :8080
 uv run python scripts/e2e.py --submit live-ring   # live end-to-end test as an anonymous user
 uv run python scripts/benchmark.py --seed 11      # held-out benchmark -> docs/benchmark.md
 uv run python scripts/seed.py --restore           # reset demo claims; deletes ALL non-demo claims, never run during judging
-```
-
-Cost controls: the service scales to zero when idle. Before a scheduled review, keep one instance warm so the first request is instant, and turn it off afterwards:
-
-```bash
-gcloud run services update redstring-api --region us-central1 --min-instances 1   # warm (~₹25/day)
-gcloud run services update redstring-api --region us-central1 --min-instances 0   # scale to zero (~₹0 idle)
 ```
 
 Demo claims are read-only for evaluators (no re-runs), and each evaluator's queue and Red String view show the demo world plus only their own submissions.
