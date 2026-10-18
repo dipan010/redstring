@@ -23,3 +23,12 @@ deep-research-report-*.md
 backend/scripts/out/
 .DS_Store
 deck/
+
+# submission artifacts (large / local only)
+*.mov
+*.mp4
+*.key
+Redstring AI Copilot.pdf
+Screenshot *.png
+out.pdf
+template.pdf
