@@ -5,7 +5,7 @@ import logging
 import time
 from collections import defaultdict, deque
 
-from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from firebase_admin import auth as fb_auth
 from google.cloud import firestore
@@ -14,6 +14,7 @@ from .agents.verdict import ACTION_LABEL
 from .clients import db, firebase_app
 from .config import get_settings
 from .llm import generate_text
+from .dispatch import dispatch, verify_task_caller
 from .network import build_network
 from .pipeline import initial_stages, run_pipeline
 from .rules import action_for, band, risk_score
@@ -76,13 +77,32 @@ async def _next_number(tx, ref) -> int:
 # ---------- routes ----------
 
 
+@app.post("/internal/run-pipeline")
+async def run_pipeline_task(body: dict, authorization: str = Header(default="")):
+    """Called by Cloud Tasks. Runs the whole agent pipeline inside this request."""
+    try:
+        await verify_task_caller(authorization)
+    except Exception:
+        raise HTTPException(403, "Forbidden")
+    claim_id = str(body.get("claimId", ""))
+    ref = db().collection("claims").document(claim_id)
+    snap = await ref.get()
+    if not snap.exists:
+        return {"ok": False, "reason": "claim not found"}  # 200: nothing to retry
+    if (snap.to_dict() or {}).get("status") == "ready":
+        return {"ok": True, "reason": "already processed"}
+    if not await run_pipeline(claim_id):
+        raise HTTPException(500, "Pipeline failed; Cloud Tasks will retry")
+    return {"ok": True}
+
+
 @app.get("/api/health")
 async def health():
     return {"ok": True, "model": get_settings().gemini_model}
 
 
 @app.post("/api/claims")
-async def create_claim(body: CreateClaimRequest, bg: BackgroundTasks, uid: str = Depends(current_user)):
+async def create_claim(body: CreateClaimRequest, uid: str = Depends(current_user)):
     rate_limit("claims", uid, get_settings().claims_per_user_per_hour)
     for d in body.documents:
         if not d.path.startswith(f"uploads/{uid}/"):
@@ -103,19 +123,20 @@ async def create_claim(body: CreateClaimRequest, bg: BackgroundTasks, uid: str =
         "flags": [],
         "linkKeys": [],
     })
-    bg.add_task(run_pipeline, ref.id)
+    await dispatch(ref.id)
     return {"id": ref.id, "claimNumber": f"RS-{n}"}
 
 
 @app.post("/api/claims/{claim_id}/rerun")
-async def rerun(claim_id: str, bg: BackgroundTasks, uid: str = Depends(current_user)):
+async def rerun(claim_id: str, uid: str = Depends(current_user)):
     rate_limit("claims", uid, get_settings().claims_per_user_per_hour)
     ref, claim = await get_claim(claim_id)
     if claim.get("isDemo"):
         raise HTTPException(403, "Demo claims are fixed so every evaluator sees the same results. Submit a sample pack to watch the agents run live.")
     if claim.get("status") in ("queued", "processing") and not _stale(claim):
         raise HTTPException(409, "Claim is already being processed")
-    bg.add_task(run_pipeline, claim_id)
+    await ref.update({"status": "queued"})
+    await dispatch(claim_id)
     return {"ok": True}
 
 

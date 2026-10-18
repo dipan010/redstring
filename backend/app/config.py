@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     storage_bucket: str = "redstring-511910.firebasestorage.app"
     auth_disabled: bool = False
 
+    # Cloud Tasks dispatch (empty queue = run in-process, for local dev)
+    tasks_queue: str = ""
+    service_url: str = "https://redstring-api-283581061982.us-central1.run.app"
+    tasks_invoker_sa: str = "283581061982-compute@developer.gserviceaccount.com"
+
     # abuse limits for the public prototype
     claims_per_user_per_hour: int = 15
     chat_per_user_per_hour: int = 60

@@ -12,6 +12,7 @@ dependencies = [
     "firebase-admin>=6.5",
     "pydantic>=2.8",
     "pydantic-settings>=2.4",
+    "google-cloud-tasks>=2.26.0",
 ]
 
 [dependency-groups]

@@ -12,9 +12,9 @@ if [[ "${1:-}" != "--web-only" ]]; then
   gcloud run deploy redstring-api \
     --project "$PROJECT" --region "$REGION" --source "$ROOT/backend" \
     --allow-unauthenticated \
-    --min-instances 1 --max-instances 4 --no-cpu-throttling \
-    --cpu 1 --memory 1Gi --concurrency 40 --timeout 300 \
-    --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT,GOOGLE_CLOUD_LOCATION=$REGION,GEMINI_MODEL=$GEMINI_MODEL,GEMINI_LOCATION=global,STORAGE_BUCKET=$PROJECT.firebasestorage.app"
+    --min-instances "${MIN_INSTANCES:-0}" --max-instances 4 --cpu-throttling \
+    --cpu 1 --memory 512Mi --concurrency 40 --timeout 300 \
+    --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT,GOOGLE_CLOUD_LOCATION=$REGION,GEMINI_MODEL=$GEMINI_MODEL,GEMINI_LOCATION=global,STORAGE_BUCKET=$PROJECT.firebasestorage.app,TASKS_QUEUE=redstring-pipeline,SERVICE_URL=https://redstring-api-283581061982.us-central1.run.app"
 fi
 
 echo "== Firebase Hosting + rules"

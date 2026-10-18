@@ -12,6 +12,7 @@ from pathlib import Path
 import httpx
 
 BASE = "https://redstring-511910.web.app"
+API = __import__("os").environ.get("API_BASE", BASE)  # e.g. a tagged Cloud Run revision
 ENV = Path(__file__).resolve().parents[2] / "frontend" / ".env.local"
 KEY = re.search(r"VITE_FIREBASE_API_KEY=(\S+)", ENV.read_text()).group(1)
 BUCKET = "redstring-511910.firebasestorage.app"
@@ -51,7 +52,7 @@ def main(submit: bool, pack_id: str = "live-ring") -> None:
         assert up.status_code == 200, up.text
         docs.append({"path": path, "name": f, "mime_type": mime})
     t = time.time()
-    created = c.post(f"{BASE}/api/claims", headers=H, json={"documents": docs, "sample_pack": pack_id}).json()
+    created = c.post(f"{API}/api/claims", headers=H, json={"documents": docs, "sample_pack": pack_id}).json()
     print("submitted:", created)
 
     # poll via Firestore REST (same data the UI streams with onSnapshot)

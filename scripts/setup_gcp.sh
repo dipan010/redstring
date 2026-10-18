@@ -12,7 +12,7 @@ gcloud services enable \
   run.googleapis.com aiplatform.googleapis.com firestore.googleapis.com firebase.googleapis.com \
   firebasestorage.googleapis.com storage.googleapis.com cloudbuild.googleapis.com \
   artifactregistry.googleapis.com identitytoolkit.googleapis.com firebasehosting.googleapis.com \
-  firebaserules.googleapis.com
+  firebaserules.googleapis.com cloudtasks.googleapis.com
 
 echo "== Firebase"
 npx -y firebase-tools projects:addfirebase "$PROJECT" 2>/dev/null || echo "(already a Firebase project)"
@@ -21,11 +21,19 @@ echo "== Firestore (native, $REGION)"
 gcloud firestore databases describe --database="(default)" >/dev/null 2>&1 \
   || gcloud firestore databases create --location="$REGION" --type=firestore-native
 
+echo "== Cloud Tasks queue for the agent pipeline"
+gcloud tasks queues describe redstring-pipeline --location "$REGION" >/dev/null 2>&1 \
+  || gcloud tasks queues create redstring-pipeline --location "$REGION" \
+       --max-attempts 3 --min-backoff 10s --max-backoff 60s --max-concurrent-dispatches 10
+
 echo "== IAM for the Cloud Run runtime service account"
 NUM=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
 SA="$NUM-compute@developer.gserviceaccount.com"
-for ROLE in roles/aiplatform.user roles/datastore.user roles/storage.objectAdmin roles/firebaseauth.viewer; do
+for ROLE in roles/aiplatform.user roles/datastore.user roles/storage.objectAdmin roles/firebaseauth.viewer roles/cloudtasks.enqueuer; do
   gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA" --role="$ROLE" \
     --condition=None --quiet >/dev/null
 done
+# Cloud Tasks signs pipeline calls as this service account
+gcloud iam service-accounts add-iam-policy-binding "$SA" --member="serviceAccount:$SA" \
+  --role=roles/iam.serviceAccountUser --quiet >/dev/null
 echo "done. Next: create the Storage bucket + web app in Firebase console if not present, then scripts/deploy.sh"

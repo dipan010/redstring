@@ -24,7 +24,8 @@ async def _stage(ref, name: str, status: str, **extra) -> None:
     await ref.update({f"stages.{name}": {"status": status, "at": firestore.SERVER_TIMESTAMP, **extra}})
 
 
-async def run_pipeline(claim_id: str) -> None:
+async def run_pipeline(claim_id: str) -> bool:
+    """Returns False if the run failed (so a queue can retry it)."""
     ref = db().collection("claims").document(claim_id)
     snap = await ref.get()
     claim = snap.to_dict()
@@ -76,5 +77,7 @@ async def run_pipeline(claim_id: str) -> None:
             "usage": summarize_usage(usage),
             "processedAt": firestore.SERVER_TIMESTAMP,
         })
+        return True
     except Exception as e:
         await ref.update({"status": "error", "error": str(e)[:500]})
+        return False

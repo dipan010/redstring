@@ -9,7 +9,7 @@ flowchart LR
 
     subgraph CR["Cloud Run: redstring-api (FastAPI)"]
         API["REST API<br/>verifies Firebase ID token"]
-        subgraph P["Background agent pipeline"]
+        subgraph P["Agent pipeline (one Cloud Tasks request per claim)"]
             R["1 · Reader<br/>extract fields"]
             PO["2 · Policy<br/>cover and clauses"]
             FO["3 · Forensics<br/>inconsistencies"]
@@ -25,7 +25,8 @@ flowchart LR
     U -->|load app| H
     U -->|upload documents| S
     H -->|"/api/** (submit claim, chat, review)"| API
-    API -->|start in background| R
+    API -->|enqueue claim| Q[["Cloud Tasks<br/>queue + retries"]]
+    Q -->|"/internal/run-pipeline"| R
     R --> PO & FO & L
     PO & FO & L --> V
     P -.->|"prompts + gs:// URIs"| G
@@ -39,4 +40,5 @@ flowchart LR
     classDef agent fill:#f4f5f7,stroke:#dde0e5,color:#111318
     class H,A,S,F google
     class G,API dark
+    class Q google
     class R,PO,FO,L,V agent
