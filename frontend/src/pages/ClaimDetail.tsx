@@ -65,6 +65,7 @@ export function ClaimDetail() {
   const pa = claim.policy?.assessment
   const flags = [...(claim.flags ?? [])].sort((a, b) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity])
   const working = claim.status === 'queued' || claim.status === 'processing'
+  const closed = claim.status === 'closed'
   // A garage is shared by many honest customers: only surface garage-only links to risky claims.
   const allLinks = claim.links ?? []
   const links = allLinks.filter((l) => l.shared.some((x) => x.kind !== 'garage') || l.fraudConfirmed || (l.riskScore ?? 0) >= 60)
@@ -80,7 +81,9 @@ export function ClaimDetail() {
       <div className="flex flex-wrap items-center gap-3">
         <Link to="/" className="text-muted hover:text-text"><ArrowLeft size={18} /></Link>
         <h1 className="font-mono text-lg font-semibold">{claim.claimNumber}</h1>
-        {claim.isDemo && <span className="rounded border border-line px-1.5 text-[10px] uppercase text-muted">demo</span>}
+        {closed
+          ? <span className="rounded border border-line px-1.5 text-[10px] uppercase text-muted">closed claim</span>
+          : claim.isDemo && <span className="rounded border border-line px-1.5 text-[10px] uppercase text-muted">demo</span>}
         <span className="text-sm text-muted">{x.claimant_name}{x.vehicle_make_model ? ` · ${x.vehicle_make_model}` : ''}</span>
         {!claim.isDemo && (claim.status === 'ready' || claim.status === 'error') && (
           <button onClick={() => api(`/claims/${claim.id}/rerun`, {})} className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted hover:text-text">
@@ -89,14 +92,23 @@ export function ClaimDetail() {
         )}
       </div>
 
-      <StageTracker stages={claim.stages} />
+      {!closed && claim.stages && <StageTracker stages={claim.stages} />}
       {claim.status === 'error' && <p className="rounded-lg border border-string/40 bg-string/10 p-3 text-sm">Processing failed: {claim.error}</p>}
 
       {/* Verdict */}
       <section className="flex flex-col gap-5 rounded-xl border border-line bg-panel p-5 md:flex-row">
         <ScoreRing score={claim.risk?.score} band={claim.risk?.band} />
         <div className="flex-1">
-          {claim.verdict ? (
+          {closed ? (
+            <>
+              <p className={`text-lg font-semibold ${claim.fraudConfirmed ? 'text-string' : 'text-ok'}`}>{claim.outcome}</p>
+              <p className="mt-1 text-xs text-muted">Historical claim closed on {claim.closedAt}. Decided by adjusters and the SIU before Redstring.</p>
+              <p className="mt-2 text-sm leading-relaxed">{claim.verdict?.summary}</p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
+                {claim.verdict?.key_reasons.map((r, i) => <li key={i}>{r}</li>)}
+              </ul>
+            </>
+          ) : claim.verdict ? (
             <>
               <p className={`text-lg font-semibold ${bandColor(claim.risk?.band)}`}>{claim.risk?.actionLabel}</p>
               <p className="mt-2 text-sm leading-relaxed">{claim.verdict.summary}</p>
@@ -108,25 +120,25 @@ export function ClaimDetail() {
             <p className="flex items-center gap-2 text-muted">{working && <Loader2 size={15} className="animate-spin" />} Verdict pending…</p>
           )}
         </div>
-        <div className="flex shrink-0 flex-row gap-2 md:flex-col">
+        {!closed && <div className="flex shrink-0 flex-row gap-2 md:flex-col">
           {[['approve', 'Approve'], ['request_info', 'Request info'], ['investigate', 'Refer to SIU']].map(([a, l]) => (
             <button key={a} disabled={actionBusy || working} onClick={() => decide(a)}
               className={`rounded-md border px-3 py-1.5 text-xs disabled:opacity-40 ${claim.decision?.action === a ? 'border-string bg-string/15' : 'border-line hover:border-muted'}`}>
               {l}
             </button>
           ))}
-        </div>
+        </div>}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           {/* Flags */}
           <section>
-            <h2 className="mb-2 text-sm font-semibold">Evidence & flags <span className="text-muted">({flags.filter((f) => f.status !== 'dismissed').length})</span></h2>
+            <h2 className="mb-2 text-sm font-semibold">{closed ? 'SIU findings' : 'Evidence & flags'} <span className="text-muted">({flags.filter((f) => f.status !== 'dismissed').length})</span></h2>
             {flags.length ? (
-              <ul className="space-y-2">{flags.map((f) => <FlagCard key={f.id} claimId={claim.id} flag={f} />)}</ul>
+              <ul className="space-y-2">{flags.map((f) => <FlagCard key={f.id} claimId={claim.id} flag={f} readOnly={closed} />)}</ul>
             ) : (
-              <p className="rounded-lg border border-line bg-panel p-3 text-sm text-muted">{claim.status === 'ready' ? 'No inconsistencies found.' : 'Waiting for agents…'}</p>
+              <p className="rounded-lg border border-line bg-panel p-3 text-sm text-muted">{claim.status === 'ready' || closed ? 'No inconsistencies found.' : 'Waiting for agents…'}</p>
             )}
           </section>
 
@@ -179,7 +191,7 @@ export function ClaimDetail() {
 
           {/* Extracted */}
           <section className="rounded-lg border border-line bg-panel p-4">
-            <h2 className="mb-3 text-sm font-semibold">Extracted by Reader agent</h2>
+            <h2 className="mb-3 text-sm font-semibold">{closed ? 'Claim details' : 'Extracted by Reader agent'}</h2>
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <Field label="Policy no." value={x.policy_number} mono />
               <Field label="Vehicle" value={x.vehicle_registration} mono />
@@ -201,7 +213,7 @@ export function ClaimDetail() {
             <Docs docs={claim.documents} />
           </section>
           <ChatPanel claimId={claim.id} />
-          <DraftPanel claimId={claim.id} />
+          {!closed && <DraftPanel claimId={claim.id} />}
           {claim.processingMs && <p className="text-xs text-muted">Triage completed in {(claim.processingMs / 1000).toFixed(1)}s by 5 agents.</p>}
         </div>
       </div>

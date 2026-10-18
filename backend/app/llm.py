@@ -69,11 +69,12 @@ async def generate_json(
     temperature: float = 0.0,
     attempts: int = 3,
     think: str = "minimal",
+    model: str | None = None,
 ) -> T:
     s = get_settings()
     last: Exception | None = None
     # primary model first; on timeout / rate limit / bad output, fall back to the faster model
-    models = [s.gemini_model] + [s.gemini_fallback_model] * (attempts - 1)
+    models = [model or s.gemini_model] + [s.gemini_fallback_model] * (attempts - 1)
     for i, model in enumerate(models):
         config = types.GenerateContentConfig(
             system_instruction=system,
@@ -96,9 +97,10 @@ async def generate_json(
     raise RuntimeError(f"Gemini call failed after {attempts} attempts: {last!r}")
 
 
-async def generate_text(contents: list, system: str, temperature: float = 0.3, think: str = "minimal") -> str:
+async def generate_text(contents: list, system: str, temperature: float = 0.3, think: str = "minimal",
+                        model: str | None = None) -> str:
     s = get_settings()
-    for model in (s.gemini_model, s.gemini_fallback_model):
+    for model in dict.fromkeys((model or s.gemini_model, s.gemini_fallback_model)):
         config = types.GenerateContentConfig(system_instruction=system, temperature=temperature,
                                              thinking_config=thinking(think, model))
         try:

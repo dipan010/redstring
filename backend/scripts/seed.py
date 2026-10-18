@@ -100,7 +100,7 @@ def hist_entities(name, phone, email, bank, vehicle, garage: Garage, invoice_no)
     return entities(r)
 
 
-def history(rng: random.Random) -> list[dict]:
+def history_rows(rng: random.Random) -> list[dict]:
     """Closed past claims: background for the Linker. A few are confirmed fraud at Speedfix."""
     rows = []
     garages = [CITYAUTO, KAVERI, GLASSPRO, MARINE]
@@ -118,6 +118,11 @@ def history(rng: random.Random) -> list[dict]:
         dict(name="Swati More", phone="+91 98500 66310", email=None, bank="300400500611", vehicle="MH 14 AA 7781",
              garage=SPEEDFIX, invoice="SMW/25-26/0455", amount=59900, days_ago=190, fraud=True, score=81),
     ]
+    return rows
+
+
+def history(rng: random.Random) -> list[dict]:
+    rows = history_rows(rng)
     now = datetime.now(timezone.utc)
     docs = []
     for n, h in enumerate(rows):
@@ -197,6 +202,8 @@ async def seed(process: bool) -> None:
     for cid in [c for c in ids if c.startswith("demo-ring")]:
         print(f"pipeline (pass 2): {cid}")
         await run_pipeline(cid)
+    from history import enrich  # full case files for the historical claims
+    await enrich()
     async for snap in client.collection("claims").where("isDemo", "==", True).where("inQueue", "==", True).stream():
         d = snap.to_dict()
         print(f"  {d['claimNumber']:8} {snap.id:24} {d.get('status'):10} risk={(d.get('risk') or {}).get('score')}"

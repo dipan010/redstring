@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     gemini_location: str = "global"  # newer Gemini models are served from the global endpoint
     gemini_fallback_model: str = "gemini-2.5-flash"  # used when the primary is slow or rate-limited
     gemini_timeout_s: float = 25.0
+    # cheaper models for steps that only write text (they do not affect the risk score)
+    verdict_model: str = "gemini-2.5-flash-lite"
+    chat_model: str = "gemini-2.5-flash"
+    draft_model: str = "gemini-2.5-flash-lite"
     storage_bucket: str = "redstring-511910.firebasestorage.app"
     auth_disabled: bool = False
 

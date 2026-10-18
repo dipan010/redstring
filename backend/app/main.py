@@ -215,10 +215,16 @@ fraud; describe risk and evidence. Reply in plain text: short sentences and "- "
 no markdown bold, italics, headers or code formatting."""
 
 
+def _today() -> str:
+    """Today's date in India, so drafted letters don't invent one."""
+    from datetime import datetime, timedelta, timezone
+    return datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%d %B %Y")
+
+
 def _claim_context(claim: dict) -> str:
     keep = {k: claim.get(k) for k in ("claimNumber", "extracted", "policy", "flags", "links", "risk", "verdict",
-                                      "decision")}
-    return json.dumps(keep, default=str)
+                                      "decision", "outcome", "closedAt")}
+    return f"TODAY'S DATE: {_today()}\n" + json.dumps(keep, default=str)
 
 
 @app.post("/api/claims/{claim_id}/chat")
@@ -234,7 +240,7 @@ async def chat(claim_id: str, body: ChatRequest, uid: str = Depends(current_user
     contents.append(f"USER: {body.message}")
     await msgs.add({"role": "user", "text": body.message, "at": firestore.SERVER_TIMESTAMP})
     try:
-        answer = await generate_text(contents, CHAT_SYSTEM)
+        answer = await generate_text(contents, CHAT_SYSTEM, model=get_settings().chat_model)
     except Exception:
         answer = "Sorry, I couldn't reach the model just now. Please try again in a moment."
     await msgs.add({"role": "assistant", "text": answer, "at": firestore.SERVER_TIMESTAMP})
@@ -257,8 +263,10 @@ async def draft(claim_id: str, body: DraftRequest, uid: str = Depends(current_us
     _, claim = await get_claim(claim_id)
     text = await generate_text(
         ["CLAIM RECORD:\n" + _claim_context(claim), DRAFT_PROMPTS[body.kind] +
-         " Sign off as 'Claims Team, Redstring Demo General Insurance'. Plain text, no markdown."],
+         f" Date the letter {_today()}. Sign off as 'Claims Team, Redstring Demo General Insurance'."
+         " Plain text, no markdown."],
         "You write clear, professional insurance correspondence.",
+        model=get_settings().draft_model,
     )
     return {"text": text}
 

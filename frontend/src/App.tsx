@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth'
 import { Layout } from './components/Layout'
 import { ClaimDetail } from './pages/ClaimDetail'
+import { ClosedClaims } from './pages/ClosedClaims'
 import { Login } from './pages/Login'
 import { Network } from './pages/Network'
 import { NewClaim } from './pages/NewClaim'
@@ -17,6 +18,7 @@ function Gate() {
       <Route element={<Layout />}>
         <Route index element={<Queue />} />
         <Route path="new" element={<NewClaim />} />
+        <Route path="closed" element={<ClosedClaims />} />
         <Route path="claims/:id" element={<ClaimDetail />} />
         <Route path="network" element={<Network />} />
         <Route path="*" element={<Navigate to="/" />} />

@@ -27,18 +27,21 @@ export interface Link {
 export interface Claim {
   id: string
   claimNumber: string
-  status: 'queued' | 'processing' | 'ready' | 'error'
+  status: 'queued' | 'processing' | 'ready' | 'error' | 'closed'
   error?: string | null
   isDemo?: boolean
   inQueue?: boolean
   createdBy?: string
+  fraudConfirmed?: boolean
+  outcome?: string
+  closedAt?: string
   createdAt?: { toDate(): Date }
   claimantName?: string
   vehicleRegistration?: string
   claimAmount?: number
   incidentDate?: string
   documents: { path: string; name: string; mime_type: string }[]
-  stages: Record<StageName, { status: StageStatus; ms?: number; error?: string }>
+  stages?: Record<StageName, { status: StageStatus; ms?: number; error?: string }>
   extracted?: Record<string, any>
   policy?: {
     assessment: {

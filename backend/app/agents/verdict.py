@@ -3,6 +3,7 @@ explanation an adjuster (or auditor) can read in ten seconds."""
 
 import json
 
+from ..config import get_settings
 from ..llm import generate_json
 from ..rules import action_for, band, risk_score
 from ..schemas import Flag, PolicyOutput, ReaderOutput, VerdictOutput
@@ -36,6 +37,7 @@ async def run(r: ReaderOutput, policy: PolicyOutput | None, flags: list[Flag]) -
             VerdictOutput,
             SYSTEM,
             temperature=0.2,
+            model=get_settings().verdict_model,
         )
     except RuntimeError:
         top = sorted(flags, key=lambda f: -{"high": 3, "medium": 2, "low": 1}[f.severity])[:4]

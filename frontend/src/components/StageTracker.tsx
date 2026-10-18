@@ -9,7 +9,7 @@ const STAGES: { key: StageName; label: string; desc: string; icon: typeof Check 
   { key: 'verdict', label: 'Verdict', desc: 'Scores & explains', icon: Gavel },
 ]
 
-export function StageTracker({ stages }: { stages: Claim['stages'] }) {
+export function StageTracker({ stages }: { stages: NonNullable<Claim['stages']> }) {
   return (
     <ol className="grid grid-cols-2 sm:grid-cols-5 gap-2">
       {STAGES.map(({ key, label, desc, icon: Icon }) => {

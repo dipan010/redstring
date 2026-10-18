@@ -1,10 +1,11 @@
-import { Inbox, LogOut, Network, Plus } from 'lucide-react'
+import { Archive, Inbox, LogOut, Network, Plus } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { logOut, useAuth } from '../auth'
 import { Logo } from './Logo'
 
 const nav = [
   { to: '/', label: 'Queue', icon: Inbox, end: true },
+  { to: '/closed', label: 'Closed claims', icon: Archive },
   { to: '/network', label: 'Red String', icon: Network },
   { to: '/new', label: 'New claim', icon: Plus },
 ]

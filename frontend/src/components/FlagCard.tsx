@@ -4,7 +4,7 @@ import { api } from '../api'
 import { severityStyles } from '../format'
 import type { Flag } from '../types'
 
-export function FlagCard({ claimId, flag }: { claimId: string; flag: Flag }) {
+export function FlagCard({ claimId, flag, readOnly = false }: { claimId: string; flag: Flag; readOnly?: boolean }) {
   const [busy, setBusy] = useState(false)
   const set = async (status: Flag['status']) => {
     setBusy(true)
@@ -21,10 +21,10 @@ export function FlagCard({ claimId, flag }: { claimId: string; flag: Flag }) {
           <p className="text-sm font-medium">{flag.title}</p>
           <p className="mt-1 text-sm text-muted">{flag.evidence}</p>
           <p className="mt-1.5 text-[11px] font-mono text-muted/80">
-            {flag.agent}{flag.source ? ` · ${flag.source}` : ''}{flag.status !== 'open' ? ` · ${flag.status} by adjuster` : ''}
+            {flag.agent}{flag.source ? ` · ${flag.source}` : ''}{flag.status !== 'open' ? ` · ${flag.status}${readOnly ? ' by SIU' : ' by adjuster'}` : ''}
           </p>
         </div>
-        <div className="flex gap-1">
+        {!readOnly && <div className="flex gap-1">
           {flag.status === 'open' ? (
             <>
               <button disabled={busy} onClick={() => set('confirmed')} title="Confirm flag"
@@ -36,7 +36,7 @@ export function FlagCard({ claimId, flag }: { claimId: string; flag: Flag }) {
             <button disabled={busy} onClick={() => set('open')} title="Undo"
               className="rounded p-1 text-muted hover:bg-panel-2 hover:text-text"><RotateCcw size={14} /></button>
           )}
-        </div>
+        </div>}
       </div>
     </li>
   )
