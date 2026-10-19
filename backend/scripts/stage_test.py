@@ -35,7 +35,7 @@ def run(pack_id: str) -> str:
                    headers={**H, "Content-Type": mime}, content=(SAMPLES / pack_id / f).read_bytes())
         r.raise_for_status()
         docs.append({"path": path, "name": f, "mime_type": mime})
-    created = c.post(f"{API}/api/claims", headers=H, json={"documents": docs, "sample_pack": pack_id,
+    created = c.post(f"{API}/api/claims", headers=H, json={"documents": docs, "sample_pack": pack_id, "note": "redstring-selftest",
                                                           "line_of_business": p.get("line", "motor")}).json()
     url = f"https://firestore.googleapis.com/v1/projects/redstring-511910/databases/(default)/documents/claims/{created['id']}"
     t = time.time()

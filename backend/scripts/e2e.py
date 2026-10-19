@@ -52,7 +52,7 @@ def main(submit: bool, pack_id: str = "live-ring") -> None:
         assert up.status_code == 200, up.text
         docs.append({"path": path, "name": f, "mime_type": mime})
     t = time.time()
-    created = c.post(f"{API}/api/claims", headers=H, json={"documents": docs, "sample_pack": pack_id}).json()
+    created = c.post(f"{API}/api/claims", headers=H, json={"documents": docs, "sample_pack": pack_id, "note": "redstring-selftest"}).json()
     print("submitted:", created)
 
     # poll via Firestore REST (same data the UI streams with onSnapshot)

@@ -28,7 +28,7 @@ export function NewClaim() {
 
   useEffect(() => {
     const load = (f: string) => fetch(`/samples/${f}`).then((r) => (r.ok ? r.json() : [])).catch(() => [])
-    Promise.all([load('manifest.json'), PREVIEW ? load('manifest-lines.json') : Promise.resolve([])])
+    Promise.all([load('manifest.json'), load('manifest-lines.json')])
       .then(([a, b]) => setPacks([...a, ...b]))
   }, [])
 

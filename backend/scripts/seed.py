@@ -27,6 +27,8 @@ from scenarios import (  # noqa: E402
 )
 
 IMAGES = ROOT / "images"
+SELFTEST = "redstring-selftest"  # note set by scripts/e2e.py and scripts/stage_test.py
+PURGE_ALL = "--purge-all-submissions" in sys.argv
 OUT = ROOT / "out"
 SAMPLES = ROOT.parent.parent / "frontend" / "public" / "samples"
 IMAGE_MODEL = os.environ.get("IMAGE_MODEL", "gemini-3.1-flash-image")
@@ -251,14 +253,18 @@ async def restore() -> None:
         for sub in ("audit", "chats", "reviews"):
             await client.recursive_delete(snap.reference.collection(sub))
         print(f"restored {d['claimNumber']} risk={score}")
-    # remove evaluator submissions
-    n = 0
+    # remove our own self-test claims only; evaluators' submissions are never touched unless asked
+    n = kept = 0
     async for snap in client.collection("claims").where(filter=firestore.FieldFilter("isDemo", "==", False)).stream():
-        if (snap.to_dict() or {}).get("staged"):
-            continue  # unreleased health/property data being prepared on a hidden revision
+        d = snap.to_dict() or {}
+        if d.get("staged"):
+            continue  # unreleased data being prepared on a hidden revision
+        if d.get("note") != SELFTEST and not PURGE_ALL:
+            kept += 1
+            continue
         await client.recursive_delete(snap.reference)
         n += 1
-    print(f"removed {n} evaluator submissions")
+    print(f"removed {n} self-test claims, kept {kept} evaluator submissions")
 
 
 def main() -> None:
@@ -271,6 +277,8 @@ def main() -> None:
     ap.add_argument("--no-process", action="store_true", help="seed without running the agents")
     ap.add_argument("--redo", nargs="*", help="re-run these demo claim ids in place")
     ap.add_argument("--restore", action="store_true", help="reset demo claims to their seeded state")
+    ap.add_argument("--purge-all-submissions", action="store_true",
+                    help="with --restore: also delete evaluators' submissions (never during judging)")
     a = ap.parse_args()
     if a.images or a.force_images:
         generate_images(force=a.force_images, only=a.only)
