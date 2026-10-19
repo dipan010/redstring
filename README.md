@@ -8,7 +8,7 @@ Redstring is an AI copilot for motor-insurance claim adjusters. Drop in a claim 
 
 **Live demo:** https://redstring-511910.web.app (click *Enter demo as adjuster*)
 
-**Benchmark** (held-out set of 32 synthetic claims, [details](docs/benchmark.md)): 95% precision, 100% recall, 1 of 14 clean claims falsely flagged, ~18 s median triage, ≈$0.036 (₹3.0) of Gemini per claim.
+**Benchmark** (motor claims, held-out set of 32 synthetic claims, [details](docs/benchmark.md)): 95% precision, 100% recall, 1 of 14 clean claims falsely flagged, ~18 s median triage, ≈$0.036 (₹3.0) of Gemini per claim.
 
 ---
 
@@ -25,6 +25,27 @@ Redstring is an AI copilot for motor-insurance claim adjusters. Drop in a claim 
 The adjuster stays in control: confirm or dismiss any flag (the score updates instantly), record a decision, chat with the claim, and draft a request-for-information email or an SIU referral memo. Every action goes to an audit trail.
 
 The **Red String** view shows the whole network: claims connected by shared identifiers, with confirmed-fraud claims highlighted.
+
+## Lines of business
+
+The same five agents run for every line; each line has its own extraction schema, deterministic rules, policy wording and entity types for the Linker.
+
+| Line | Claim pack | What it checks | Linked through |
+|---|---|---|---|
+| **Motor** | Claim form, repair invoice, damage photos, police report | Invoice dates and arithmetic, photo vs. narrative, plate and vehicle mismatches, old damage, policy period and IDV | Phone, email, bank account, vehicle, garage, invoice, identical photo |
+| **Health** | Claim form, final hospital bill, discharge summary, prescriptions, pharmacy bill, lab reports | 30-day and 24-month waiting periods, room-rent limit, patient not insured, bill dated before admission, bill arithmetic, treatment that does not fit the diagnosis (e.g. ICU charges with no ICU stay) | Phone, email, bank account, hospital, doctor, hospital bill number |
+| **Property** | Claim form, contractor invoice, damage photos, police or fire report | Burglary without a police report, loss address vs. insured property, invoice for a different site, invoice dated before the incident, gradual damage presented as sudden | Phone, email, bank account, contractor, property address, invoice, identical photo |
+
+Health and property have demo scenarios and sample packs but no formal benchmark yet.
+
+## Views
+
+- **Claims adjuster:** the live queue (filter by line), claim pages, chat and correspondence drafting.
+- **SIU investigator:** a case board that groups referred claims into possible rings (shared people, accounts or documents, or a provider with confirmed fraud) with the amount at stake.
+- **Claims manager:** an overview of recommendations by line, the risk score distribution, providers with the most risk, triage time and AI cost per claim from measured token usage.
+- **Closed claims:** every historical claim with its outcome, SIU findings, documents and links, searchable and filterable by line, outcome and provider.
+
+The *View as* switcher changes what each persona sees first; it is a demo convenience, not access control.
 
 ## Google Cloud and Firebase
 
@@ -93,10 +114,11 @@ More: [submission description](docs/submission.md) · [benchmark](docs/benchmark
 
 ```
 backend/            FastAPI app for Cloud Run
-  app/agents/       reader, policy, forensics, linker, verdict
+  app/agents/       reader, policy, forensics, linker, verdict (motor)
+  app/lines/        health and property: schemas, rules, prompts, shared engine
   app/rules.py      deterministic checks and risk scoring
-  app/policies/     policy wording (fictional insurer)
-  scripts/          synthetic data generator, seeding, benchmark
+  app/policies/     policy wordings (motor, health, home; fictional insurer)
+  scripts/          synthetic data generators, seeding, benchmark, end-to-end tests
   tests/
 frontend/           React + Vite + Tailwind adjuster console
   public/samples/   one-click sample claim packs
@@ -111,7 +133,10 @@ scripts/            GCP setup and deploy
 ./scripts/setup_gcp.sh                       # APIs, Firestore, IAM
 cd backend && uv sync
 uv run python scripts/seed.py --images       # generate damage photos (once)
-uv run python scripts/seed.py --reset        # seed demo world + run agents
+uv run python scripts/seed.py --reset        # seed the motor demo world + run agents
+uv run python scripts/lines_seed.py --images # generate property photos (once)
+uv run python scripts/lines_seed.py --seed   # seed health and property (staged), run agents
+uv run python scripts/lines_seed.py --release  # make the staged health/property data visible
 
 # local dev
 uv run uvicorn app.main:app --port 8080      # backend (uses ADC)
@@ -123,11 +148,19 @@ cd ../frontend && npm install && npm run dev # frontend, proxies /api to :8080
 # checks
 uv run python scripts/e2e.py --submit live-ring   # live end-to-end test as an anonymous user
 uv run python scripts/benchmark.py --seed 11      # held-out benchmark -> docs/benchmark.md
-uv run python scripts/seed.py --restore           # reset demo claims; deletes ALL non-demo claims, never run during judging
+uv run python scripts/seed.py --restore           # reset demo claims and remove self-test claims (evaluators' claims are kept)
 ```
 
 Demo claims are read-only for evaluators (no re-runs), and each evaluator's queue and Red String view show the demo world plus only their own submissions.
 
 ## Demo data
 
-All claimants, policies, garages, phone numbers and bank accounts are **fictional**, generated by `backend/scripts/scenarios.py`. The insurer is "Redstring Demo General Insurance", which does not exist. The demo world contains 59 historical claims (3 confirmed fraud at one garage), 9 demo claims (3 clean, 3 with individual red flags, 3 forming a ring), and 3 sample packs on the *New claim* page, one of which joins the ring live.
+All claimants, policies, garages, hospitals, contractors, phone numbers and bank accounts are **fictional**, generated by `backend/scripts/scenarios.py` (motor) and `backend/scripts/lines_data.py` (health and property). The insurer is "Redstring Demo General Insurance", which does not exist.
+
+| Line | Open demo claims | Closed history | Hidden ring |
+|---|---|---|---|
+| Motor | 9 (3 clean, 3 single red flags, 3 ring members) | 59, 3 confirmed fraud | Speedfix Motor Works garage |
+| Health | 5 (2 clean, 2 single red flags, 1 ring member) | 14, 2 confirmed fraud | Sanjeevani Multispeciality Hospital and its doctor |
+| Property | 5 (2 clean, 2 single red flags, 1 ring member) | 12, 2 confirmed fraud | QuickFix Home Restorations contractor |
+
+The *New claim* page offers 5 sample packs; one per line joins its ring live, so evaluators can watch the Linker connect a fresh claim to past fraud.
