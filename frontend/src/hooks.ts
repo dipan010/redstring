@@ -1,6 +1,7 @@
 import { collection, doc, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { auth, db } from './firebase'
+import { visibleTo } from './lines'
 import type { Claim } from './types'
 
 /** Demo claims plus the signed-in user's own submissions (evaluators don't see each other's). */
@@ -13,7 +14,7 @@ export function useQueue() {
       q,
       (s) => {
         const uid = auth.currentUser?.uid
-        setClaims(s.docs.map((d) => ({ id: d.id, ...d.data() }) as Claim).filter((c) => c.isDemo || c.createdBy === uid))
+        setClaims(s.docs.map((d) => ({ id: d.id, ...d.data() }) as Claim).filter((c) => visibleTo(c, uid)))
       },
       (e) => setError(e.message),
     )
@@ -33,6 +34,21 @@ export function useClaim(id: string | undefined) {
     )
   }, [id])
   return { claim, error }
+}
+
+/** Closed (historical) claims visible to this user. */
+export function useClosed() {
+  const [claims, setClaims] = useState<Claim[] | null>(null)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    const q = query(collection(db, 'claims'), where('status', '==', 'closed'))
+    return onSnapshot(
+      q,
+      (s) => setClaims(s.docs.map((d) => ({ id: d.id, ...d.data() }) as Claim).filter((c) => visibleTo(c, auth.currentUser?.uid))),
+      (e) => setError(e.message),
+    )
+  }, [])
+  return { claims, error }
 }
 
 export type Review = { flagStatus?: Record<string, 'open' | 'confirmed' | 'dismissed'>; risk?: Claim['risk']; decision?: Claim['decision'] }

@@ -5,8 +5,15 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth'
 import { storage } from '../firebase'
+import { LINE_LABEL, PREVIEW, type Line } from '../lines'
 
-type SamplePack = { id: string; title: string; description: string; files: string[] }
+type SamplePack = { id: string; title: string; description: string; files: string[]; line?: Line }
+
+const HINT: Record<Line, string> = {
+  motor: 'Drop the claim pack: claim form, invoice, photos, police report. The agents extract everything else.',
+  health: 'Drop the claim pack: claim form, final hospital bill, discharge summary, prescriptions and reports.',
+  property: 'Drop the claim pack: claim form, contractor invoice, photos, police or fire report.',
+}
 const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp'
 
 export function NewClaim() {
@@ -17,9 +24,12 @@ export function NewClaim() {
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
   const [packs, setPacks] = useState<SamplePack[]>([])
+  const [line, setLine] = useState<Line>('motor')
 
   useEffect(() => {
-    fetch('/samples/manifest.json').then((r) => (r.ok ? r.json() : [])).then(setPacks).catch(() => setPacks([]))
+    const load = (f: string) => fetch(`/samples/${f}`).then((r) => (r.ok ? r.json() : [])).catch(() => [])
+    Promise.all([load('manifest.json'), PREVIEW ? load('manifest-lines.json') : Promise.resolve([])])
+      .then(([a, b]) => setPacks([...a, ...b]))
   }, [])
 
   const add = (list: FileList | null) => {
@@ -28,7 +38,7 @@ export function NewClaim() {
     setFiles((prev) => [...prev, ...ok].slice(0, 10))
   }
 
-  const submit = async (toSend: File[], claimNote?: string, samplePack?: string) => {
+  const submit = async (toSend: File[], claimNote?: string, samplePack?: string, claimLine: Line = line) => {
     if (!user || toSend.length === 0) return
     setError('')
     try {
@@ -42,7 +52,7 @@ export function NewClaim() {
         }),
       )
       setBusy('Starting agents…')
-      const { id } = await api<{ id: string }>('/claims', { documents, note: claimNote || undefined, sample_pack: samplePack })
+      const { id } = await api<{ id: string }>('/claims', { documents, note: claimNote || undefined, sample_pack: samplePack, line_of_business: claimLine })
       nav(`/claims/${id}`)
     } catch (e) {
       setError((e as Error).message)
@@ -59,20 +69,32 @@ export function NewClaim() {
           return new File([blob], name, { type: blob.type })
         }),
       )
-      await submit(loaded, undefined, p.id)
+      await submit(loaded, undefined, p.id, p.line ?? 'motor')
     } catch (e) {
       setError((e as Error).message)
       setBusy('')
     }
   }
 
+  const lineChoices: Line[] = PREVIEW || packs.some((p) => p.line) ? ['motor', 'health', 'property'] : ['motor']
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="space-y-4">
         <div>
           <h1 className="text-xl font-semibold">New claim</h1>
-          <p className="text-sm text-muted">Drop the claim pack: claim form, invoice, photos, police report. The agents extract everything else.</p>
+          <p className="text-sm text-muted">{HINT[line]}</p>
         </div>
+        {lineChoices.length > 1 && (
+          <div className="flex gap-2" role="radiogroup" aria-label="Line of business">
+            {lineChoices.map((l) => (
+              <button key={l} role="radio" aria-checked={line === l} onClick={() => setLine(l)}
+                className={`rounded-md border px-3 py-1.5 text-sm ${line === l ? 'border-string bg-string/15' : 'border-line text-muted hover:text-text'}`}>
+                {LINE_LABEL[l]}
+              </button>
+            ))}
+          </div>
+        )}
         <label
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => { e.preventDefault(); add(e.dataTransfer.files) }}
@@ -108,7 +130,10 @@ export function NewClaim() {
         {packs.map((p) => (
           <button key={p.id} onClick={() => useSample(p)} disabled={!!busy}
             className="w-full rounded-lg border border-line bg-panel p-3 text-left hover:border-string disabled:opacity-50">
-            <p className="text-sm font-medium">{p.title}</p>
+            <p className="text-sm font-medium">
+              {lineChoices.length > 1 && <span className="mr-2 rounded border border-line px-1 text-[10px] uppercase text-muted">{LINE_LABEL[p.line ?? 'motor']}</span>}
+              {p.title}
+            </p>
             <p className="mt-1 text-xs text-muted">{p.description}</p>
             <p className="mt-2 text-[11px] font-mono text-muted/80">{p.files.length} files</p>
           </button>

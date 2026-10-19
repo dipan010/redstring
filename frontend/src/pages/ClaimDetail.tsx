@@ -12,9 +12,10 @@ import { bandColor, inr } from '../format'
 import { storage } from '../firebase'
 import { useClaim, useReview, withReview } from '../hooks'
 import type { Claim } from '../types'
+import { lineOf, PROVIDER_KINDS } from '../lines'
 
 const SEV_ORDER = { high: 0, medium: 1, low: 2 }
-const KIND_LABEL: Record<string, string> = { phone: 'phone', email: 'email', bank: 'bank a/c', vehicle: 'vehicle', garage: 'garage', invoice: 'invoice', photo: 'same photo' }
+const KIND_LABEL: Record<string, string> = { phone: 'phone', email: 'email', bank: 'bank a/c', vehicle: 'vehicle', garage: 'garage', invoice: 'invoice', photo: 'same photo', hospital: 'hospital', doctor: 'doctor', bill: 'bill no.', contractor: 'contractor', address: 'address' }
 
 function Docs({ docs }: { docs: Claim['documents'] }) {
   const [urls, setUrls] = useState<Record<string, string>>({})
@@ -66,9 +67,10 @@ export function ClaimDetail() {
   const flags = [...(claim.flags ?? [])].sort((a, b) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity])
   const working = claim.status === 'queued' || claim.status === 'processing'
   const closed = claim.status === 'closed'
+  const line = lineOf(claim)
   // A garage is shared by many honest customers: only surface garage-only links to risky claims.
   const allLinks = claim.links ?? []
-  const links = allLinks.filter((l) => l.shared.some((x) => x.kind !== 'garage') || l.fraudConfirmed || (l.riskScore ?? 0) >= 60)
+  const links = allLinks.filter((l) => l.shared.some((x) => !PROVIDER_KINDS.includes(x.kind)) || l.fraudConfirmed || (l.riskScore ?? 0) >= 60)
   const routine = allLinks.length - links.length
 
   const decide = async (action: string) => {
@@ -84,7 +86,12 @@ export function ClaimDetail() {
         {closed
           ? <span className="rounded border border-line px-1.5 text-[10px] uppercase text-muted">closed claim</span>
           : claim.isDemo && <span className="rounded border border-line px-1.5 text-[10px] uppercase text-muted">demo</span>}
-        <span className="text-sm text-muted">{x.claimant_name}{x.vehicle_make_model ? ` · ${x.vehicle_make_model}` : ''}</span>
+        <span className="text-sm text-muted">
+          {line !== 'motor' && <span className="mr-2 rounded border border-line px-1 text-[10px] uppercase">{line}</span>}
+          {line === 'health' ? `${x.patient_name ?? x.claimant_name ?? ''}${x.hospital_name ? ` · ${x.hospital_name}` : ''}`
+            : line === 'property' ? `${x.claimant_name ?? ''}${x.incident_type ? ` · ${String(x.incident_type).replace('_', ' ')}` : ''}`
+            : `${x.claimant_name ?? ''}${x.vehicle_make_model ? ` · ${x.vehicle_make_model}` : ''}`}
+        </span>
         {!claim.isDemo && (claim.status === 'ready' || claim.status === 'error') && (
           <button onClick={() => api(`/claims/${claim.id}/rerun`, {})} className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted hover:text-text">
             <RefreshCw size={13} /> Re-run agents
@@ -161,7 +168,7 @@ export function ClaimDetail() {
               </ul>
               <div className="mt-2 flex flex-wrap items-center gap-4 text-xs">
                 <Link to={`/network?focus=${claim.id}`} className="inline-flex items-center gap-1 text-string">Open in Red String view <ExternalLink size={12} /></Link>
-                {routine > 0 && <span className="text-muted">+{routine} routine claims at the same garage (not shown)</span>}
+                {routine > 0 && <span className="text-muted">+{routine} routine claims at the same {line === 'health' ? 'hospital' : line === 'property' ? 'contractor' : 'garage'} (not shown)</span>}
               </div>
             </section>
           )}
@@ -193,15 +200,46 @@ export function ClaimDetail() {
           <section className="rounded-lg border border-line bg-panel p-4">
             <h2 className="mb-3 text-sm font-semibold">{closed ? 'Claim details' : 'Extracted by Reader agent'}</h2>
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <Field label="Policy no." value={x.policy_number} mono />
-              <Field label="Vehicle" value={x.vehicle_registration} mono />
-              <Field label="Incident date" value={x.incident_date} />
-              <Field label="Location" value={x.incident_location} />
-              <Field label="Amount claimed" value={inr(x.claim_amount)} />
-              <Field label="Phone" value={x.claimant_phone} mono />
-              <Field label="Garage" value={x.invoice?.garage_name} />
-              <Field label="Invoice" value={x.invoice ? `#${x.invoice.number ?? '-'} · ${x.invoice.date ?? ''}` : null} />
-              <Field label="Invoice total" value={inr(x.invoice?.total)} />
+              {line === 'health' ? (
+                <>
+                  <Field label="Policy no." value={x.policy_number} mono />
+                  <Field label="Patient" value={x.patient_name ? `${x.patient_name}${x.patient_age ? `, ${x.patient_age}` : ''}` : null} />
+                  <Field label="Relationship" value={x.relationship_to_policyholder} />
+                  <Field label="Hospital" value={x.hospital_name} />
+                  <Field label="Doctor" value={x.treating_doctor} />
+                  <Field label="Admission / discharge" value={x.admission_date ? `${x.admission_date} to ${x.discharge_date ?? '?'}` : null} />
+                  <Field label="Diagnosis" value={x.diagnosis} />
+                  <Field label="Procedure" value={x.procedure || 'None'} />
+                  <Field label="Room rent / day" value={inr(x.room_rent_per_day)} />
+                  <Field label="Bill" value={x.bill_number ? `#${x.bill_number} · ${x.bill_date ?? ''}` : null} />
+                  <Field label="Bill total" value={inr(x.bill_total)} />
+                  <Field label="Amount claimed" value={inr(x.claim_amount)} />
+                </>
+              ) : line === 'property' ? (
+                <>
+                  <Field label="Policy no." value={x.policy_number} mono />
+                  <Field label="Incident" value={x.incident_type ? `${String(x.incident_type).replace('_', ' ')} · ${x.incident_date ?? ''}` : null} />
+                  <Field label="Address" value={x.property_address} />
+                  <Field label="Damaged / stolen" value={(x.damaged_items ?? []).join(', ') || null} />
+                  <Field label="Police report" value={x.police_report_number || 'Not filed'} />
+                  <Field label="Contractor" value={x.contractor_name} />
+                  <Field label="Invoice" value={x.invoice_number ? `#${x.invoice_number} · ${x.invoice_date ?? ''}` : null} />
+                  <Field label="Invoice total" value={inr(x.invoice_total)} />
+                  <Field label="Amount claimed" value={inr(x.claim_amount)} />
+                </>
+              ) : (
+                <>
+                  <Field label="Policy no." value={x.policy_number} mono />
+                  <Field label="Vehicle" value={x.vehicle_registration} mono />
+                  <Field label="Incident date" value={x.incident_date} />
+                  <Field label="Location" value={x.incident_location} />
+                  <Field label="Amount claimed" value={inr(x.claim_amount)} />
+                  <Field label="Phone" value={x.claimant_phone} mono />
+                  <Field label="Garage" value={x.invoice?.garage_name} />
+                  <Field label="Invoice" value={x.invoice ? `#${x.invoice.number ?? '-'} · ${x.invoice.date ?? ''}` : null} />
+                  <Field label="Invoice total" value={inr(x.invoice?.total)} />
+                </>
+              )}
             </dl>
             {x.incident_description && <p className="mt-3 text-sm text-muted">“{x.incident_description}”</p>}
           </section>

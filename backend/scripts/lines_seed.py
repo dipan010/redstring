@@ -320,11 +320,15 @@ async def release() -> None:
     from google.cloud import firestore
 
     from app.clients import db
-    n = 0
+    n = removed = 0
     async for snap in db().collection("claims").where("staged", "==", True).stream():
+        if (snap.to_dict() or {}).get("stagingTest"):
+            await db().recursive_delete(snap.reference)  # test submissions made through the staging revision
+            removed += 1
+            continue
         await snap.reference.update({"staged": firestore.DELETE_FIELD, "isDemo": True, "createdBy": "seed"})
         n += 1
-    print(f"released {n} claims")
+    print(f"released {n} claims, removed {removed} staging test claims")
 
 
 def main() -> None:

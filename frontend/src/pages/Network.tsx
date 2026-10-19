@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
+import { PREVIEW } from '../lines'
 
 type Node = { id: string; type: string; label: string; claimant?: string; score?: number; fraudConfirmed?: boolean; inQueue?: boolean; x?: number; y?: number }
 type Edge = { source: string | Node; target: string | Node; kind: string }
@@ -10,8 +11,9 @@ type Graph = { nodes: Node[]; edges: Edge[] }
 
 const ENTITY_COLOR: Record<string, string> = {
   bank: '#e5484d', phone: '#f76b15', email: '#f5a524', garage: '#8e4ec6', vehicle: '#3e63dd', invoice: '#e93d82', photo: '#12a594',
+  hospital: '#0090ff', doctor: '#46a758', bill: '#d6409f', contractor: '#a18072', address: '#978365',
 }
-const ENTITY_LABEL: Record<string, string> = { bank: 'Bank account', phone: 'Phone', email: 'Email', garage: 'Garage', vehicle: 'Vehicle', invoice: 'Invoice', photo: 'Photo' }
+const ENTITY_LABEL: Record<string, string> = { bank: 'Bank account', phone: 'Phone', email: 'Email', garage: 'Garage', vehicle: 'Vehicle', invoice: 'Invoice', photo: 'Photo', hospital: 'Hospital', doctor: 'Doctor', bill: 'Hospital bill', contractor: 'Contractor', address: 'Address' }
 const idOf = (n: string | Node) => (typeof n === 'string' ? n : n.id)
 
 export function Network() {
@@ -25,7 +27,7 @@ export function Network() {
   const box = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(800)
 
-  useEffect(() => { api<Graph>('/network').then(setGraph).catch((e) => setError(e.message)) }, [])
+  useEffect(() => { api<Graph>(PREVIEW ? '/network?preview=true' : '/network').then(setGraph).catch((e) => setError(e.message)) }, [])
   useEffect(() => {
     const ro = new ResizeObserver(([e]) => setWidth(e.contentRect.width))
     if (box.current) ro.observe(box.current)
@@ -60,7 +62,7 @@ export function Network() {
         <ul className="ml-auto flex flex-wrap gap-3 text-xs text-muted">
           <li className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-text" /> Claim</li>
           <li className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border-2 border-string" /> Confirmed fraud</li>
-          {Object.entries(ENTITY_COLOR).map(([k, c]) => (
+          {Object.entries(ENTITY_COLOR).filter(([k]) => !graph || graph.nodes.some((n) => n.type === k)).map(([k, c]) => (
             <li key={k} className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45" style={{ background: c }} /> {ENTITY_LABEL[k]}</li>
           ))}
         </ul>

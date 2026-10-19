@@ -33,6 +33,10 @@ export interface Claim {
   inQueue?: boolean
   createdBy?: string
   fraudConfirmed?: boolean
+  staged?: boolean
+  lineOfBusiness?: 'motor' | 'health' | 'property'
+  subject?: string
+  providerName?: string
   outcome?: string
   closedAt?: string
   createdAt?: { toDate(): Date }

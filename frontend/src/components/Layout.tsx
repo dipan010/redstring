@@ -1,17 +1,20 @@
-import { Archive, Inbox, LogOut, Network, Plus } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router-dom'
-import { logOut, useAuth } from '../auth'
+import { Archive, BarChart3, Inbox, LogOut, Network, Plus, ShieldAlert } from 'lucide-react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { logOut } from '../auth'
+import { ROLE_HOME, ROLE_LABEL, useRole, type Role } from '../role'
 import { Logo } from './Logo'
 
-const nav = [
-  { to: '/', label: 'Queue', icon: Inbox, end: true },
+const HOME_ICON = { adjuster: Inbox, siu: ShieldAlert, manager: BarChart3 }
+const common: { to: string; label: string; icon: typeof Archive; end?: boolean }[] = [
   { to: '/closed', label: 'Closed claims', icon: Archive },
   { to: '/network', label: 'Red String', icon: Network },
   { to: '/new', label: 'New claim', icon: Plus },
 ]
 
 export function Layout() {
-  const { user } = useAuth()
+  const { role, setRole } = useRole()
+  const go = useNavigate()
+  const nav = [{ ...ROLE_HOME[role], icon: HOME_ICON[role], end: true }, ...common]
   return (
     <div className="min-h-full flex flex-col">
       <header className="sticky top-0 z-20 border-b border-line bg-ink/90 backdrop-blur">
@@ -26,7 +29,14 @@ export function Layout() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm text-muted">
-            <span className="hidden md:inline">{user?.isAnonymous ? 'Demo adjuster' : user?.displayName || user?.email}</span>
+            <label className="flex items-center gap-2">
+              <span className="hidden lg:inline">View as</span>
+              <select value={role} aria-label="View as"
+                onChange={(e) => { const r = e.target.value as Role; setRole(r); go(ROLE_HOME[r].to) }}
+                className="rounded-md bg-panel px-2 py-1 text-xs text-text ring-1 ring-line outline-none">
+                {(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+              </select>
+            </label>
             <button onClick={logOut} className="hover:text-text" title="Sign out"><LogOut size={16} /></button>
           </div>
         </div>

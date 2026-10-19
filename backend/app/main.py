@@ -120,6 +120,7 @@ async def create_claim(body: CreateClaimRequest, uid: str = Depends(current_user
         "note": body.note,
         "samplePack": body.sample_pack,
         "lineOfBusiness": body.line_of_business,
+        **({"staged": True, "stagingTest": True} if get_settings().stage_new_claims else {}),
         "stages": initial_stages(),
         "flags": [],
         "linkKeys": [],

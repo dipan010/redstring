@@ -1,0 +1,25 @@
+[
+  {
+    "id": "live-health-ring",
+    "line": "health",
+    "title": "Fresh claim from Sanjeevani Multispeciality",
+    "description": "A routine-looking admission. Watch the Linker connect the hospital, doctor and bank account.",
+    "files": [
+      "claim_form.pdf",
+      "hospital_bill.pdf",
+      "discharge_summary.pdf",
+      "prescriptions_and_reports.pdf"
+    ]
+  },
+  {
+    "id": "live-property-ring",
+    "line": "property",
+    "title": "Fresh claim repaired by QuickFix",
+    "description": "Looks like a routine leak. Watch the Linker tie it to the contractor and bank account.",
+    "files": [
+      "claim_form.pdf",
+      "contractor_invoice.pdf",
+      "photo_1.jpg"
+    ]
+  }
+]

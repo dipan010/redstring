@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     verdict_model: str = "gemini-2.5-flash-lite"
     chat_model: str = "gemini-2.5-flash"
     draft_model: str = "gemini-2.5-flash-lite"
+    # set only on the hidden staging revision: new claims join the staged (unreleased) world
+    stage_new_claims: bool = False
     storage_bucket: str = "redstring-511910.firebasestorage.app"
     auth_disabled: bool = False
 

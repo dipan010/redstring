@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { RiskPill } from '../components/ScoreRing'
 import { inr } from '../format'
 import { useQueue } from '../hooks'
+import { LINE_LABEL, lineOf, subjectOf, type Line } from '../lines'
+import { useState } from 'react'
 import type { Claim } from '../types'
 
 const ACTION_STYLE: Record<string, string> = {
@@ -21,9 +23,12 @@ function Tile({ icon: Icon, label, value, tone = '' }: { icon: typeof Inbox; lab
 }
 
 export function Queue() {
-  const { claims, error } = useQueue()
+  const { claims: all, error } = useQueue()
+  const [line, setLine] = useState<Line | 'all'>('all')
   if (error) return <p className="text-string">Couldn't load the queue: {error}</p>
-  if (!claims) return <Loader2 className="animate-spin text-muted" />
+  if (!all) return <Loader2 className="animate-spin text-muted" />
+  const lines = [...new Set(all.map(lineOf))]
+  const claims = line === 'all' ? all : all.filter((c) => lineOf(c) === line)
 
   const ready = claims.filter((c) => c.status === 'ready')
   const sorted = [...claims].sort((a, b) => (b.risk?.score ?? 101) - (a.risk?.score ?? 101))
@@ -35,6 +40,16 @@ export function Queue() {
         <h1 className="text-xl font-semibold">Claims queue</h1>
         <p className="text-sm text-muted">Sorted by risk. Updates live as agents finish.</p>
       </div>
+      {lines.length > 1 && (
+        <div className="flex gap-2">
+          {(['all', ...lines] as const).map((l) => (
+            <button key={l} onClick={() => setLine(l)}
+              className={`rounded-full border px-3 py-1 text-xs ${line === l ? 'border-string bg-string/15 text-text' : 'border-line text-muted hover:text-text'}`}>
+              {l === 'all' ? 'All lines' : LINE_LABEL[l]}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile icon={Inbox} label="In queue" value={claims.length} />
         <Tile icon={AlertTriangle} label="Refer to SIU" value={ready.filter((c) => c.risk?.action === 'investigate').length} tone="text-string" />
@@ -48,7 +63,7 @@ export function Queue() {
               <th className="px-4 py-2.5 font-medium">Risk</th>
               <th className="px-4 py-2.5 font-medium">Claim</th>
               <th className="px-4 py-2.5 font-medium">Claimant</th>
-              <th className="px-4 py-2.5 font-medium">Vehicle</th>
+              <th className="px-4 py-2.5 font-medium">{line === 'motor' || (lines.length === 1 && lines[0] === 'motor') ? 'Vehicle' : 'Subject'}</th>
               <th className="px-4 py-2.5 font-medium text-right">Amount</th>
               <th className="px-4 py-2.5 font-medium">Flags</th>
               <th className="px-4 py-2.5 font-medium">Recommendation</th>
@@ -62,7 +77,10 @@ export function Queue() {
                   <Link to={`/claims/${c.id}`} className="hover:text-string">{c.claimNumber}</Link>
                 </td>
                 <td className="px-4 py-3">{c.claimantName ?? '-'}</td>
-                <td className="px-4 py-3 font-mono text-xs text-muted">{c.vehicleRegistration ?? '-'}</td>
+                <td className="px-4 py-3 text-xs text-muted">
+                  {lines.length > 1 && <span className="mr-2 rounded border border-line px-1 text-[10px] uppercase">{LINE_LABEL[lineOf(c)]}</span>}
+                  <span className={lineOf(c) === 'motor' ? 'font-mono' : ''}>{subjectOf(c)}</span>
+                </td>
                 <td className="px-4 py-3 text-right tabular-nums">{inr(c.claimAmount)}</td>
                 <td className="px-4 py-3 text-muted">{c.status === 'ready' ? c.flags.filter((f) => f.status !== 'dismissed').length : ''}</td>
                 <td className="px-4 py-3">

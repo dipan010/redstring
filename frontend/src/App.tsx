@@ -4,6 +4,9 @@ import { AuthProvider, useAuth } from './auth'
 import { Layout } from './components/Layout'
 import { ClaimDetail } from './pages/ClaimDetail'
 import { ClosedClaims } from './pages/ClosedClaims'
+import { Manager } from './pages/Manager'
+import { SiuBoard } from './pages/SiuBoard'
+import { RoleProvider } from './role'
 import { Login } from './pages/Login'
 import { Network } from './pages/Network'
 import { NewClaim } from './pages/NewClaim'
@@ -19,6 +22,8 @@ function Gate() {
         <Route index element={<Queue />} />
         <Route path="new" element={<NewClaim />} />
         <Route path="closed" element={<ClosedClaims />} />
+        <Route path="siu" element={<SiuBoard />} />
+        <Route path="manager" element={<Manager />} />
         <Route path="claims/:id" element={<ClaimDetail />} />
         <Route path="network" element={<Network />} />
         <Route path="*" element={<Navigate to="/" />} />
@@ -30,7 +35,7 @@ function Gate() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider><Gate /></AuthProvider>
+      <AuthProvider><RoleProvider><Gate /></RoleProvider></AuthProvider>
     </BrowserRouter>
   )
 }
